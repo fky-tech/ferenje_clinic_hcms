@@ -29,9 +29,22 @@ class Queue {
 
     static async create(queueData) {
         const { card_id, doctor_id, status, queue_position, date } = queueData;
+        // Ensure parameters are not undefined. Use null for optional fields if needed, or defaults.
+        const safeStatus = status || 'waiting';
+        const safeDate = date || new Date(); // Default to now if not provided
+
+        let finalQueuePosition = queue_position;
+        if (finalQueuePosition === undefined || finalQueuePosition === null) {
+            // Calculate next position for this doctor on this date
+            // Note: safeDate is full datetime, we should filter by day if calculating per day.
+            // As a simple fix, find MAX position for doctor.
+            const [rows] = await db.execute('SELECT MAX(queue_position) as maxPos FROM queue WHERE doctor_id = ?', [doctor_id]);
+            finalQueuePosition = (rows[0].maxPos || 0) + 1;
+        }
+
         const [result] = await db.execute(
             'INSERT INTO queue (card_id, doctor_id, status, queue_position, date) VALUES (?, ?, ?, ?, ?)',
-            [card_id, doctor_id, status || 'waiting', queue_position, date]
+            [card_id, doctor_id, safeStatus, finalQueuePosition, safeDate]
         );
         return result.insertId;
     }

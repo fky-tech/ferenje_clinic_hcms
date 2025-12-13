@@ -19,6 +19,7 @@ import visitVitalSignsRoutes from './src/routes/visitVitalSignsRoutes.js';
 import visitPhysicalExamRoutes from './src/routes/visitPhysicalExamRoutes.js';
 import availableLabTestsRoutes from './src/routes/availableLabTestsRoutes.js';
 import labRequestRoutes from './src/routes/labRequestRoutes.js';
+import labRequestTestRoutes from './src/routes/labRequestTestRoutes.js';
 import labTestResultRoutes from './src/routes/labTestResultRoutes.js';
 import medicationRoutes from './src/routes/medicationRoutes.js';
 
@@ -56,6 +57,7 @@ app.use('/api/visit-vital-signs', visitVitalSignsRoutes);
 app.use('/api/visit-physical-exams', visitPhysicalExamRoutes);
 app.use('/api/available-lab-tests', availableLabTestsRoutes);
 app.use('/api/lab-requests', labRequestRoutes);
+app.use('/api/lab-request-tests', labRequestTestRoutes);
 app.use('/api/lab-test-results', labTestResultRoutes);
 app.use('/api/medications', medicationRoutes);
 

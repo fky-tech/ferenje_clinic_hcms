@@ -1,24 +1,47 @@
 import { Bell, User, Settings, LogOut } from 'lucide-react';
 import { formatDateTime } from '../utils/helpers';
 import { useState, useEffect, useRef } from 'react';
-import { getStoredUser, clearStoredUser } from '../utils/helpers';
+import { getStoredUser, clearStoredUser, setStoredUser } from '../utils/helpers';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../components/common/Modal';
+import Input from '../components/common/Input';
+import Button from '../components/common/Button';
+import api from '../api/axios';
+import toast from 'react-hot-toast';
 
 export default function Header() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
-    const user = getStoredUser();
+    const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+    const [isAllNotifOpen, setIsAllNotifOpen] = useState(false);
+    const [user, setUser] = useState(getStoredUser());
     const navigate = useNavigate();
     const profileRef = useRef(null);
     const notifRef = useRef(null);
 
-    // Mock Notifications
-    const notifications = [
-        { id: 1, text: "New patient added to queue", time: "2 mins ago" },
-        { id: 2, text: "Dr. Kebede has logged in", time: "10 mins ago" },
-        { id: 3, text: "System maintenance at 12:00 AM", time: "1 hour ago" },
-    ];
+    // Profile Edit State
+    const [profileData, setProfileData] = useState({
+        first_name: user?.first_name || '',
+        last_name: user?.last_name || '',
+        email: user?.email || '',
+        phone_number: user?.phone_number || '',
+        password: '' // Only if changing
+    });
+
+    // Notifications State
+    const [notifications, setNotifications] = useState(() => {
+        const saved = localStorage.getItem('notifications');
+        return saved ? JSON.parse(saved) : [
+            { id: 1, text: "New patient added to queue", time: "2 mins ago" },
+            { id: 2, text: "Dr. Kebede has logged in", time: "10 mins ago" },
+            { id: 3, text: "System maintenance at 12:00 AM", time: "1 hour ago" },
+        ];
+    });
+
+    useEffect(() => {
+        localStorage.setItem('notifications', JSON.stringify(notifications));
+    }, [notifications]);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -40,9 +63,61 @@ export default function Header() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const handleNotificationClick = (id) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
+
+    const handleClearNotifications = () => {
+        setNotifications([]);
+        setIsNotifOpen(false);
+    };
+
     const handleLogout = () => {
         clearStoredUser();
         navigate('/');
+    };
+
+    const handleEditProfile = () => {
+        setProfileData({
+            first_name: user?.first_name || '',
+            last_name: user?.last_name || '',
+            email: user?.email || '',
+            phone_number: user?.phone_number || '',
+            password: ''
+        });
+        setIsEditProfileOpen(true);
+        setIsProfileOpen(false);
+    };
+
+    const handleProfileSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (!user?.person_id) {
+                toast.error("User ID missing");
+                return;
+            }
+
+            const payload = {
+                ...profileData,
+            };
+            if (!payload.password) delete payload.password;
+
+            await api.put(`/persons/${user.person_id}`, payload);
+            toast.success("Profile updated successfully");
+
+            const updatedUser = { ...user, ...profileData };
+            delete updatedUser.password;
+            setStoredUser(updatedUser);
+            setUser(updatedUser);
+            setIsEditProfileOpen(false);
+        } catch (error) {
+            console.error("Profile update error", error);
+            toast.error("Failed to update profile");
+        }
+    };
+
+    const handleChange = (e) => {
+        setProfileData({ ...profileData, [e.target.name]: e.target.value });
     };
 
     return (
@@ -56,29 +131,55 @@ export default function Header() {
                 <div className="flex items-center space-x-4">
                     {/* Notifications */}
                     <div className="relative" ref={notifRef}>
-                        <button 
+                        <button
                             className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             onClick={() => setIsNotifOpen(!isNotifOpen)}
                         >
                             <Bell className="w-6 h-6" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                            {notifications.length > 0 && (
+                                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
+                                    {notifications.length}
+                                </span>
+                            )}
                         </button>
-                        
+
                         {isNotifOpen && (
-                            <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 py-1">
-                                <div className="px-4 py-2 border-b border-gray-100">
+                            <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                                <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
                                     <h3 className="font-semibold text-gray-900">Notifications</h3>
+                                    {notifications.length > 0 && (
+                                        <button
+                                            onClick={handleClearNotifications}
+                                            className="text-xs text-red-600 hover:text-red-700"
+                                        >
+                                            Clear All
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="max-h-64 overflow-y-auto">
-                                    {notifications.map(notif => (
-                                        <div key={notif.id} className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-0">
-                                            <p className="text-sm text-gray-800">{notif.text}</p>
-                                            <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
-                                        </div>
-                                    ))}
+                                    {notifications.length === 0 ? (
+                                        <p className="px-4 py-3 text-sm text-gray-500 text-center">No new notifications</p>
+                                    ) : (
+                                        notifications.map(notif => (
+                                            <div
+                                                key={notif.id}
+                                                onClick={() => handleNotificationClick(notif.id)}
+                                                className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-0"
+                                            >
+                                                <p className="text-sm text-gray-800">{notif.text}</p>
+                                                <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
-                                <div className="px-4 py-2 border-t border-gray-100 text-center">
-                                    <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                                <div className="px-4 py-2 border-t border-gray-100 text-center bg-gray-50 rounded-b-lg">
+                                    <button
+                                        className="text-sm text-primary-600 hover:text-primary-700 font-medium w-full"
+                                        onClick={() => {
+                                            setIsAllNotifOpen(true);
+                                            setIsNotifOpen(false);
+                                        }}
+                                    >
                                         View All
                                     </button>
                                 </div>
@@ -88,7 +189,7 @@ export default function Header() {
 
                     {/* User Info */}
                     <div className="relative" ref={profileRef}>
-                        <div 
+                        <div
                             className="flex items-center space-x-3 pl-4 border-l border-gray-200 cursor-pointer"
                             onClick={() => setIsProfileOpen(!isProfileOpen)}
                         >
@@ -105,11 +206,14 @@ export default function Header() {
 
                         {isProfileOpen && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1">
-                                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center">
+                                <button
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                                    onClick={handleEditProfile}
+                                >
                                     <Settings className="w-4 h-4 mr-2" />
                                     Edit Profile
                                 </button>
-                                <button 
+                                <button
                                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
                                     onClick={handleLogout}
                                 >
@@ -121,6 +225,82 @@ export default function Header() {
                     </div>
                 </div>
             </div>
+
+            <Modal
+                isOpen={isEditProfileOpen}
+                onClose={() => setIsEditProfileOpen(false)}
+                title="Edit My Profile"
+            >
+                <form onSubmit={handleProfileSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="First Name" name="first_name"
+                            value={profileData.first_name} onChange={handleChange} required
+                        />
+                        <Input
+                            label="Last Name" name="last_name"
+                            value={profileData.last_name} onChange={handleChange} required
+                        />
+                    </div>
+                    <Input
+                        label="Email" name="email" type="email"
+                        value={profileData.email} onChange={handleChange} required
+                    />
+                    <Input
+                        label="Phone Number" name="phone_number"
+                        value={profileData.phone_number} onChange={handleChange}
+                    />
+                    <Input
+                        label="New Password (Optional)" name="password" type="password"
+                        value={profileData.password} onChange={handleChange}
+                        placeholder="Leave blank to keep current"
+                    />
+                    <div className="flex justify-end pt-4 border-t space-x-3">
+                        <Button type="button" variant="secondary" onClick={() => setIsEditProfileOpen(false)}>Cancel</Button>
+                        <Button type="submit" variant="primary">Save Changes</Button>
+                    </div>
+                </form>
+            </Modal>
+            {/* All Notifications Modal */}
+            <Modal
+                isOpen={isAllNotifOpen}
+                onClose={() => setIsAllNotifOpen(false)}
+                title="All Notifications"
+            >
+                <div className="max-h-[60vh] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                        <p className="text-center text-gray-500 py-8">No notifications found</p>
+                    ) : (
+                        <div className="divide-y divide-gray-100">
+                            {notifications.map(notif => (
+                                <div
+                                    key={notif.id}
+                                    className="px-4 py-4 hover:bg-gray-50 transition-colors flex justify-between items-start"
+                                >
+                                    <div>
+                                        <p className="text-sm text-gray-900 font-medium">{notif.text}</p>
+                                        <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleNotificationClick(notif.id)}
+                                        className="text-gray-400 hover:text-red-500"
+                                        title="Dismiss"
+                                    >
+                                        <div className="sr-only">Dismiss</div>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="mt-4 pt-4 border-t flex justify-end">
+                    {notifications.length > 0 && (
+                        <Button variant="danger" onClick={handleClearNotifications}>Clear All</Button>
+                    )}
+                    <Button variant="secondary" onClick={() => setIsAllNotifOpen(false)} className="ml-2">Close</Button>
+                </div>
+            </Modal>
         </header>
     );
 }

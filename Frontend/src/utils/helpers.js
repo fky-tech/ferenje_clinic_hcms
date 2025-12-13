@@ -28,7 +28,14 @@ export const formatDateTimeForAPI = (date) => {
 export const isDateToday = (date) => {
     if (!date) return false;
     try {
-        const dateObj = typeof date === 'string' ? parseISO(date) : date;
+        let dateObj;
+        if (typeof date === 'string') {
+            // Handle SQL format "YYYY-MM-DD HH:mm:ss"
+            const normalized = date.replace(' ', 'T');
+            dateObj = new Date(normalized);
+        } else {
+            dateObj = date;
+        }
         return isToday(dateObj);
     } catch (error) {
         return false;

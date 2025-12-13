@@ -88,11 +88,28 @@ class PersonController {
     async updatePerson(req, res) {
         try {
             const { id } = req.params;
-            const affectedRows = await Person.update(id, req.body);
 
-            if (affectedRows === 0) {
+            // 1. Fetch existing person
+            const existingPerson = await Person.findById(id);
+            if (!existingPerson) {
                 return res.status(404).json({ error: 'Person not found' });
             }
+
+            // 2. Merge existing data with updates
+            // We use the existing values for any field not present in req.body
+            const updatedData = {
+                first_name: req.body.first_name || existingPerson.first_name,
+                last_name: req.body.last_name || existingPerson.last_name,
+                email: req.body.email || existingPerson.email,
+                password: req.body.password || existingPerson.password,
+                address: req.body.address || existingPerson.address,
+                phone_number: req.body.phone_number || existingPerson.phone_number,
+                department_id: req.body.department_id || existingPerson.department_id,
+                role: req.body.role || existingPerson.role
+            };
+
+            // 3. Update
+            const affectedRows = await Person.update(id, updatedData);
 
             res.status(200).json({ message: 'Person updated successfully' });
         } catch (error) {

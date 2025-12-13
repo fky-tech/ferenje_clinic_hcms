@@ -4,9 +4,9 @@ class LabTestResult {
     constructor(data = {}) {
         this.result_id = data.result_id || null;
         this.request_id = data.request_id || null;
-        this.result_value = data.result_value || null;
-        this.result_date = data.result_date || null;
-        this.technician_remarks = data.technician_remarks || null;
+        this.test_id = data.test_id || null;
+        this.test_result_value = data.test_result_value || null;
+        this.interpretation = data.interpretation || null;
         // From JOIN
         this.test_name = data.test_name || null;
         this.normal_range = data.normal_range || null;
@@ -24,10 +24,10 @@ class LabTestResult {
     }
 
     static async create(resultData) {
-        const { request_id, result_value, result_date, technician_remarks } = resultData;
+        const { request_id, test_id, test_result_value, interpretation } = resultData;
         const [result] = await db.execute(
-            'INSERT INTO labtestresult (request_id, result_value, result_date, technician_remarks) VALUES (?, ?, ?, ?)',
-            [request_id, result_value, result_date, technician_remarks]
+            'INSERT INTO labtestresult (request_id, test_id, test_result_value, interpretation) VALUES (?, ?, ?, ?)',
+            [request_id, test_id, test_result_value, interpretation]
         );
         return result.insertId;
     }
@@ -36,8 +36,7 @@ class LabTestResult {
         const [rows] = await db.execute(`
             SELECT ltr.*, alt.test_name, alt.normal_range, alt.unit
             FROM labtestresult ltr
-            JOIN lab_request lr ON ltr.request_id = lr.request_id
-            JOIN available_lab_tests alt ON lr.test_id = alt.test_id
+            JOIN available_lab_tests alt ON ltr.test_id = alt.test_id
         `);
         return rows.map(row => new LabTestResult(row));
     }
@@ -46,8 +45,7 @@ class LabTestResult {
         const [rows] = await db.execute(`
             SELECT ltr.*, alt.test_name, alt.normal_range, alt.unit
             FROM labtestresult ltr
-            JOIN lab_request lr ON ltr.request_id = lr.request_id
-            JOIN available_lab_tests alt ON lr.test_id = alt.test_id
+            JOIN available_lab_tests alt ON ltr.test_id = alt.test_id
             WHERE ltr.result_id = ?
         `, [id]);
         return rows[0] ? new LabTestResult(rows[0]) : null;
@@ -57,18 +55,17 @@ class LabTestResult {
         const [rows] = await db.execute(`
             SELECT ltr.*, alt.test_name, alt.normal_range, alt.unit
             FROM labtestresult ltr
-            JOIN lab_request lr ON ltr.request_id = lr.request_id
-            JOIN available_lab_tests alt ON lr.test_id = alt.test_id
+            JOIN available_lab_tests alt ON ltr.test_id = alt.test_id
             WHERE ltr.request_id = ?
         `, [requestId]);
-        return rows[0] ? new LabTestResult(rows[0]) : null;
+        return rows.map(row => new LabTestResult(row)); // Can be multiple results for a request now (multiple tests)
     }
 
     static async update(id, resultData) {
-        const { request_id, result_value, result_date, technician_remarks } = resultData;
+        const { request_id, test_id, test_result_value, interpretation } = resultData;
         const [result] = await db.execute(
-            'UPDATE labtestresult SET request_id = ?, result_value = ?, result_date = ?, technician_remarks = ? WHERE result_id = ?',
-            [request_id, result_value, result_date, technician_remarks, id]
+            'UPDATE labtestresult SET request_id = ?, test_id = ?, test_result_value = ?, interpretation = ? WHERE result_id = ?',
+            [request_id, test_id, test_result_value, interpretation, id]
         );
         return result.affectedRows;
     }

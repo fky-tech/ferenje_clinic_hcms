@@ -36,7 +36,22 @@ export default function RegisterPatient() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Auto-calculate DOB from Age
+        if (name === 'Age' && value) {
+            const currentYear = new Date().getFullYear();
+            const birthYear = currentYear - parseInt(value);
+            // Default to Jan 1st of birth year
+            const dob = `${birthYear}-01-01`;
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                DateOfBirth: dob
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
@@ -70,7 +85,7 @@ export default function RegisterPatient() {
             });
 
             // 2. Create card
-            await api.post(API_ROUTES.CARDS, {
+            const cardResponse = await api.post(API_ROUTES.CARDS, {
                 patient_id: formData.patient_id,
                 CardNumber: formData.CardNumber,
                 status: CARD_STATUS.ACTIVE,
@@ -78,11 +93,15 @@ export default function RegisterPatient() {
                 expire_date: formData.expire_date,
             });
 
+            // Capture card_id from response. Assuming backend returns { card_id: ... } or { insertId: ... }
+            // If CardController returns { message, card_id }, used that.
+            const newCardId = cardResponse.data.card_id || cardResponse.data.insertId;
+
             // 3. Record payment
             await api.post(API_ROUTES.PAYMENTS, {
-                card_id: null, // Will be updated after getting card_id
+                card_id: newCardId,
                 amount: formData.amount,
-                billing_date: new Date().toISOString(),
+                billing_date: new Date().toISOString().slice(0, 19).replace('T', ' '), // MySQL Format
                 description: 'New patient registration and card fee',
                 payment_type: PAYMENT_TYPES.CARD_REGISTRATION,
                 status: 'paid',

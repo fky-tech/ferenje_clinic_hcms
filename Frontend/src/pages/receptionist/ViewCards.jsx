@@ -2,18 +2,23 @@ import { useState, useEffect } from 'react';
 import { CreditCard, X } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
+import Input from '../../components/common/Input';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import api from '../../api/axios';
-import { API_ROUTES } from '../../utils/constants';
-import { formatDate, getFullName, formatCurrency } from '../../utils/helpers';
+import { API_ROUTES, PAYMENT_TYPES } from '../../utils/constants';
+import { formatDate, getFullName, formatCurrency, getCardExpiryDate, formatForAPI } from '../../utils/helpers';
+import toast from 'react-hot-toast';
 
 export default function ViewCards() {
     const [cards, setCards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCard, setSelectedCard] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [renewLoading, setRenewLoading] = useState(false);
+
+    const [renewalFee, setRenewalFee] = useState(100);
 
     useEffect(() => {
         fetchCards();
@@ -32,7 +37,42 @@ export default function ViewCards() {
 
     const handleViewDetails = (card) => {
         setSelectedCard(card);
+        setRenewalFee(100); // Reset default
         setIsModalOpen(true);
+    };
+
+    const handleRenew = async () => {
+        if (!selectedCard) return;
+        setRenewLoading(true);
+        try {
+            // 1. Create Payment
+            await api.post(API_ROUTES.PAYMENTS, {
+                card_id: selectedCard.card_id,
+                amount: renewalFee,
+                billing_date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                description: 'Card Renewal Fee',
+                payment_type: PAYMENT_TYPES.CARD_RENEWAL,
+                status: 'paid'
+            });
+
+            // 2. Update Card
+            const newExpiry = formatForAPI(getCardExpiryDate());
+            await api.put(`${API_ROUTES.CARDS}/${selectedCard.card_id}`, {
+                ...selectedCard,
+                status: 'Active',
+                expire_date: newExpiry,
+                issue_date: formatForAPI(new Date()) // Optional: update issue date too? Usually just expiry.
+            });
+
+            toast.success('Card renewed successfully');
+            setIsModalOpen(false);
+            fetchCards();
+        } catch (error) {
+            console.error('Error renewing card:', error);
+            toast.error('Failed to renew card');
+        } finally {
+            setRenewLoading(false);
+        }
     };
 
     const columns = [
@@ -110,8 +150,30 @@ export default function ViewCards() {
                                 <p className="mt-1 text-sm text-gray-900">{formatDate(selectedCard.expire_date)}</p>
                             </div>
                         </div>
-                        <div className="flex justify-end pt-4 border-t">
+
+                        {selectedCard.status === 'Expired' && (
+                            <div className="pt-2 border-t">
+                                <Input
+                                    label="Renewal Fee (ETB)"
+                                    name="renewalFee"
+                                    type="number"
+                                    value={renewalFee}
+                                    onChange={(e) => setRenewalFee(e.target.value)}
+                                />
+                            </div>
+                        )}
+
+                        <div className="flex justify-end pt-4 border-t space-x-3">
                             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Close</Button>
+                            {selectedCard.status === 'Expired' && (
+                                <Button
+                                    variant="primary"
+                                    onClick={handleRenew}
+                                    disabled={renewLoading || !renewalFee}
+                                >
+                                    {renewLoading ? 'Processing...' : 'Pay'}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 )}
