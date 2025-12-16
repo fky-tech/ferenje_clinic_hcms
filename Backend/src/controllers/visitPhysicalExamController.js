@@ -64,6 +64,17 @@ class VisitPhysicalExamController {
         }
     }
 
+    async getPhysicalExamsByCardId(req, res) {
+        try {
+            const { cardId } = req.params;
+            const exams = await VisitPhysicalExam.findByCardId(cardId);
+            res.status(200).json(exams);
+        } catch (error) {
+            console.error('Error fetching physical exams by card:', error);
+            res.status(500).json({ error: 'Failed to fetch physical exams by card', details: error.message });
+        }
+    }
+
     async deletePhysicalExam(req, res) {
         try {
             const { id } = req.params;

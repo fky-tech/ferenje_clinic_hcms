@@ -1,7 +1,7 @@
 import LabRequestTest from '../models/labRequestTestModel.js';
 
 class LabRequestTestController {
-    async create(req, res) {
+    static async create(req, res) {
         try {
             const { request_id, test_id } = req.body;
             if (!request_id || !test_id) {
@@ -15,16 +15,29 @@ class LabRequestTestController {
         }
     }
 
-    async getByRequestId(req, res) {
+    static async getTestsByRequestId(req, res) {
         try {
             const { requestId } = req.params;
             const tests = await LabRequestTest.findByRequestId(requestId);
-            res.status(200).json(tests);
+            res.json(tests);
         } catch (error) {
-            console.error('Error fetching lab request tests:', error);
-            res.status(500).json({ error: 'Failed to fetch tests', details: error.message });
+            res.status(500).json({ message: error.message });
+        }
+    }
+
+    static async updatePaymentStatus(req, res) {
+        try {
+            const { requestId } = req.params;
+            const { status } = req.body; // 'paid', 'unpaid', 'pending'
+            if (!status) {
+                return res.status(400).json({ message: 'Status is required' });
+            }
+            await LabRequestTest.updatePaymentStatusByRequestId(requestId, status);
+            res.json({ message: 'Payment status updated successfully' });
+        } catch (error) {
+            res.status(500).json({ message: error.message });
         }
     }
 }
 
-export default new LabRequestTestController();
+export default LabRequestTestController;

@@ -2,6 +2,7 @@ import { Bell, User, Settings, LogOut } from 'lucide-react';
 import { formatDateTime } from '../utils/helpers';
 import { useState, useEffect, useRef } from 'react';
 import { getStoredUser, clearStoredUser, setStoredUser } from '../utils/helpers';
+import { useNotifications } from '../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
@@ -19,6 +20,7 @@ export default function Header() {
     const navigate = useNavigate();
     const profileRef = useRef(null);
     const notifRef = useRef(null);
+    const { notifications, removeNotification, clearAll } = useNotifications();
 
     // Profile Edit State
     const [profileData, setProfileData] = useState({
@@ -28,20 +30,6 @@ export default function Header() {
         phone_number: user?.phone_number || '',
         password: '' // Only if changing
     });
-
-    // Notifications State
-    const [notifications, setNotifications] = useState(() => {
-        const saved = localStorage.getItem('notifications');
-        return saved ? JSON.parse(saved) : [
-            { id: 1, text: "New patient added to queue", time: "2 mins ago" },
-            { id: 2, text: "Dr. Kebede has logged in", time: "10 mins ago" },
-            { id: 3, text: "System maintenance at 12:00 AM", time: "1 hour ago" },
-        ];
-    });
-
-    useEffect(() => {
-        localStorage.setItem('notifications', JSON.stringify(notifications));
-    }, [notifications]);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -64,11 +52,14 @@ export default function Header() {
     }, []);
 
     const handleNotificationClick = (id) => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+        // removeNotification(id); // Or mark as read? User previously deleted on click? 
+        // Current logic: click -> delete?
+        // User's previous code: setNotifications(prev => prev.filter(n => n.id !== id));
+        removeNotification(id);
     };
 
     const handleClearNotifications = () => {
-        setNotifications([]);
+        clearAll();
         setIsNotifOpen(false);
     };
 
@@ -195,9 +186,9 @@ export default function Header() {
                         >
                             <div className="text-right">
                                 <p className="text-sm font-medium text-gray-900">
-                                    {user ? `${user.first_name} ${user.last_name}` : 'Receptionist'}
+                                    {user?.first_name} {user?.last_name}
                                 </p>
-                                <p className="text-xs text-gray-500">Receptionist</p>
+                                <p className="text-xs text-gray-500 capitalize">{user?.person_type || user?.role || 'User'}</p>
                             </div>
                             <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors">
                                 <User className="w-6 h-6 text-primary-600" />

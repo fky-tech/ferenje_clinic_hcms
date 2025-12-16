@@ -3,8 +3,8 @@ import LabRequest from '../models/labRequestModel.js';
 class LabRequestController {
     async createRequest(req, res) {
         try {
-            const { visit_id, test_id, RequestDate } = req.body;
-            if (!visit_id || !test_id || !RequestDate) {
+            const { visit_id, RequestDate } = req.body;
+            if (!visit_id || !RequestDate) {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
             const result = await LabRequest.create(req.body);
@@ -50,6 +50,17 @@ class LabRequestController {
         }
     }
 
+    async getLabRequestsByCardId(req, res) {
+        try {
+            const { cardId } = req.params;
+            const labRequests = await LabRequest.findByCardId(cardId);
+            res.status(200).json(labRequests);
+        } catch (error) {
+            console.error('Error fetching lab requests by card:', error);
+            res.status(500).json({ error: 'Failed to fetch lab requests by card', details: error.message });
+        }
+    }
+
     async updateRequest(req, res) {
         try {
             const { id } = req.params;
@@ -75,6 +86,37 @@ class LabRequestController {
         } catch (error) {
             console.error('Error deleting lab request:', error);
             res.status(500).json({ error: 'Failed to delete lab request', details: error.message });
+        }
+    }
+
+    async getDashboardStats(req, res) {
+        try {
+            const stats = await LabRequest.getStats();
+            res.status(200).json(stats);
+        } catch (error) {
+            console.error('Error fetching dashboard stats:', error);
+            res.status(500).json({ error: 'Failed to fetch stats', details: error.message });
+        }
+    }
+
+    async getTodaysRequests(req, res) {
+        try {
+            const requests = await LabRequest.findTodaysRequests();
+            res.status(200).json(requests);
+        } catch (error) {
+            console.error('Error fetching todays requests:', error);
+            res.status(500).json({ error: 'Failed to fetch todays requests', details: error.message });
+        }
+    }
+
+    async getRequests(req, res) {
+        try {
+            const { date } = req.query;
+            const requests = await LabRequest.findAllRequests(date);
+            res.status(200).json(requests);
+        } catch (error) {
+            console.error('Error fetching lab requests with filter:', error);
+            res.status(500).json({ error: 'Failed to fetch lab requests', details: error.message });
         }
     }
 }

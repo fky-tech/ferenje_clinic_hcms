@@ -2,17 +2,17 @@ import db from '../config/db.js';
 
 class VisitVitalSigns {
     constructor(data = {}) {
-        this.vital_sign_id = data.vital_sign_id || null;
-        this.visit_id = data.visit_id || null;
-        this.bp_systolic = data.bp_systolic || null;
-        this.bp_diastolic = data.bp_diastolic || null;
-        this.temperature = data.temperature || null;
-        this.pulse_rate = data.pulse_rate || null;
-        this.respiratory_rate = data.respiratory_rate || null;
-        this.oxygen_saturation = data.oxygen_saturation || null;
-        this.bmi = data.bmi || null;
-        this.weight = data.weight || null;
-        this.height = data.height || null;
+        this.vital_sign_id = data.VitalsID || data.vital_sign_id || null;
+        this.visit_id = data.VisitRecordID || data.visit_id || null;
+        this.bp_systolic = data.SystolicBP || data.bp_systolic || null;
+        this.bp_diastolic = data.DiastolicBP || data.bp_diastolic || null;
+        this.temperature = data.TemperatureC || data.temperature || null;
+        this.pulse_rate = data.PulseRate || data.pulse_rate || null;
+        this.respiratory_rate = data.RespiratoryRate || data.respiratory_rate || null;
+        this.oxygen_saturation = data.SPO2 || data.oxygen_saturation || null;
+        this.bmi = data.bmi || null; // Not in DB table shown, probably handled in frontend or separate
+        this.weight = data.WeightKg || data.weight || null;
+        this.height = data.height || null; // Not in DB table shown
         // From JOIN
         this.visit_date = data.visit_date || null;
     }
@@ -28,67 +28,89 @@ class VisitVitalSigns {
     }
 
     static async create(vitalData) {
-        const {
-            visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate,
-            respiratory_rate, oxygen_saturation, bmi, weight, height
-        } = vitalData;
+        // Default all fields to null to prevent SQL binding errors
+        const visit_id = vitalData.visit_id || null;
+        const bp_systolic = vitalData.bp_systolic || vitalData.SystolicBP || null;
+        const bp_diastolic = vitalData.bp_diastolic || vitalData.DiastolicBP || null;
+        const temperature = vitalData.temperature || vitalData.TemperatureC || null;
+        const pulse_rate = vitalData.pulse_rate || vitalData.PulseRate || null;
+        const respiratory_rate = vitalData.respiratory_rate || vitalData.RespiratoryRate || null;
+        const oxygen_saturation = vitalData.oxygen_saturation || vitalData.SPO2 || null;
+        const weight = vitalData.weight || vitalData.WeightKg || null;
 
         const [result] = await db.execute(
-            `INSERT INTO visitvitalsigns (visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate, respiratory_rate, oxygen_saturation, bmi, weight, height) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate, respiratory_rate, oxygen_saturation, bmi, weight, height]
+            `INSERT INTO visitvitalsigns 
+            (VisitRecordID, SystolicBP, DiastolicBP, TemperatureC, PulseRate, RespiratoryRate, SPO2, WeightKg) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate, respiratory_rate, oxygen_saturation, weight]
         );
         return result.insertId;
     }
 
     static async findAll() {
         const [rows] = await db.execute(`
-            SELECT vs.*, pvr.visit_date
+            SELECT vs.*, pvr.DateOfVisit as visit_date
             FROM visitvitalsigns vs
-            JOIN patientvisitrecord pvr ON vs.visit_id = pvr.visit_id
+            JOIN patientvisitrecord pvr ON vs.VisitRecordID = pvr.VisitRecordID
         `);
         return rows.map(row => new VisitVitalSigns(row));
     }
 
     static async findById(id) {
         const [rows] = await db.execute(`
-            SELECT vs.*, pvr.visit_date
+            SELECT vs.*, pvr.DateOfVisit as visit_date
             FROM visitvitalsigns vs
-            JOIN patientvisitrecord pvr ON vs.visit_id = pvr.visit_id
-            WHERE vs.vital_sign_id = ?
+            JOIN patientvisitrecord pvr ON vs.VisitRecordID = pvr.VisitRecordID
+            WHERE vs.VitalsID = ?
         `, [id]);
         return rows[0] ? new VisitVitalSigns(rows[0]) : null;
     }
 
     static async findByVisitId(visitId) {
         const [rows] = await db.execute(`
-            SELECT vs.*, pvr.visit_date
+            SELECT vs.*, pvr.DateOfVisit as visit_date
             FROM visitvitalsigns vs
-            JOIN patientvisitrecord pvr ON vs.visit_id = pvr.visit_id
-            WHERE vs.visit_id = ?
+            JOIN patientvisitrecord pvr ON vs.VisitRecordID = pvr.VisitRecordID
+            WHERE vs.VisitRecordID = ?
         `, [visitId]);
         return rows[0] ? new VisitVitalSigns(rows[0]) : null;
     }
 
+    static async findByCardId(cardId) {
+        const [rows] = await db.execute(`
+            SELECT vs.*, pvr.VisitRecordID, pvr.DateOfVisit as visit_date
+            FROM visitvitalsigns vs
+            JOIN patientvisitrecord pvr ON vs.VisitRecordID = pvr.VisitRecordID
+            WHERE pvr.card_id = ?
+            ORDER BY pvr.DateOfVisit DESC
+        `, [cardId]);
+        return rows.map(row => new VisitVitalSigns(row));
+    }
+
     static async update(id, vitalData) {
-        const {
-            visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate,
-            respiratory_rate, oxygen_saturation, bmi, weight, height
-        } = vitalData;
+        // Default all fields to null to prevent SQL binding errors
+        const visit_id = vitalData.visit_id || null;
+        const bp_systolic = vitalData.bp_systolic || vitalData.SystolicBP || null;
+        const bp_diastolic = vitalData.bp_diastolic || vitalData.DiastolicBP || null;
+        const temperature = vitalData.temperature || vitalData.TemperatureC || null;
+        const pulse_rate = vitalData.pulse_rate || vitalData.PulseRate || null;
+        const respiratory_rate = vitalData.respiratory_rate || vitalData.RespiratoryRate || null;
+        const oxygen_saturation = vitalData.oxygen_saturation || vitalData.SPO2 || null;
+        const weight = vitalData.weight || vitalData.WeightKg || null;
 
         const [result] = await db.execute(
             `UPDATE visitvitalsigns SET 
-       visit_id = ?, bp_systolic = ?, bp_diastolic = ?, temperature = ?, pulse_rate = ?, 
-       respiratory_rate = ?, oxygen_saturation = ?, bmi = ?, weight = ?, height = ? 
-       WHERE vital_sign_id = ?`,
-            [visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate, respiratory_rate, oxygen_saturation, bmi, weight, height, id]
+            VisitRecordID = ?, SystolicBP = ?, DiastolicBP = ?, TemperatureC = ?, 
+            PulseRate = ?, RespiratoryRate = ?, SPO2 = ?, WeightKg = ?
+            WHERE VitalsID = ?`,
+            [visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate, respiratory_rate, oxygen_saturation, weight, id]
         );
         return result.affectedRows;
     }
 
     static async delete(id) {
         const [result] = await db.execute(
-            'DELETE FROM visitvitalsigns WHERE vital_sign_id = ?',
+            'DELETE FROM visitvitalsigns WHERE VitalsID = ?',
             [id]
         );
         return result.affectedRows;

@@ -9,19 +9,33 @@ import {
     Users,
     LogOut,
     Menu,
-    X
+    X,
+    Clock
 } from 'lucide-react';
 import { useState } from 'react';
-import { clearStoredUser } from '../utils/helpers';
+import { clearStoredUser, getStoredUser } from '../utils/helpers';
 
-const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/register-patient', icon: UserPlus, label: 'Register Patient' },
-    { path: '/search-patient', icon: Search, label: 'Search Patient' },
-    { path: '/view-cards', icon: CreditCard, label: 'View Cards' },
-    { path: '/lab-requests', icon: FlaskConical, label: 'Lab Requests' },
-    { path: '/appointments', icon: Calendar, label: 'Appointments' },
-    { path: '/manage-queue', icon: Users, label: 'Manage Queue' },
+const receptionistMenuItems = [
+    { path: '/receptionist/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/receptionist/register-patient', icon: UserPlus, label: 'Register Patient' },
+    { path: '/receptionist/search-patient', icon: Search, label: 'Search Patient' },
+    { path: '/receptionist/view-cards', icon: CreditCard, label: 'View Cards' },
+    { path: '/receptionist/lab-requests', icon: FlaskConical, label: 'Lab Requests' },
+    { path: '/receptionist/appointments', icon: Calendar, label: 'Appointments' },
+    { path: '/receptionist/manage-queue', icon: Users, label: 'Manage Queue' },
+];
+
+const doctorMenuItems = [
+    { path: '/doctor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/doctor/patients', icon: Users, label: 'My Patients' }, // Placeholder path
+    { path: '/doctor/appointments', icon: Calendar, label: 'Appointments' },
+    { path: '/doctor/queue', icon: Clock, label: 'Queue' }, // Using Clock for Queue if Users is taken
+];
+
+const labDoctorMenuItems = [
+    { path: '/lab/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/lab/labs', icon: FlaskConical, label: 'Labs' },
+    { path: '/lab/search-patient', icon: Search, label: 'Search Patients' },
 ];
 
 export default function Sidebar() {
@@ -29,6 +43,25 @@ export default function Sidebar() {
     const navigate = useNavigate();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    // Get User Role
+    const user = getStoredUser();
+    const role = user?.role || 'receptionist';
+
+    let menuItems = receptionistMenuItems;
+    if (role === 'doctor') menuItems = doctorMenuItems;
+    if (role === 'lab_doctor') menuItems = labDoctorMenuItems;
+
+    // Get portal name from person_type
+    const getPortalName = () => {
+        if (!user || (!user.person_type && !user.role)) return 'Portal';
+        const userRole = (user.person_type || user.role).toLowerCase();
+        if (userRole === 'doctor') return 'Doctor Portal';
+        if (userRole === 'receptionist') return 'Receptionist Portal';
+        if (userRole === 'lab_doctor') return 'Lab Portal';
+        return 'HCMS Portal';
+    };
+    const portalName = getPortalName();
 
     const handleLogout = () => {
         clearStoredUser();
@@ -42,7 +75,7 @@ export default function Sidebar() {
                 {!isCollapsed && (
                     <div className="overflow-hidden whitespace-nowrap">
                         <h1 className="text-xl font-bold text-primary-600 truncate">Ferenje Clinic</h1>
-                        <p className="text-xs text-gray-500 truncate">Receptionist Portal</p>
+                        <p className="text-xs text-gray-500 truncate">{portalName}</p>
                     </div>
                 )}
                 <button
@@ -55,10 +88,12 @@ export default function Sidebar() {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-3 space-y-1 overflow-y-auto overflow-x-hidden">
+            <nav className={`flex-1 p-3 space-y-1 ${isCollapsed ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden'}`}>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = location.pathname === item.path;
+                    // Match path start to handle nested routes or exact matches
+                    // Or simple check
+                    const isActive = location.pathname.startsWith(item.path);
 
                     return (
                         <div key={item.path} className="relative group">
@@ -118,17 +153,6 @@ export default function Sidebar() {
                 <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setIsMobileOpen(false)}>
                     <div className="w-64 h-full" onClick={(e) => e.stopPropagation()}>
                         <SidebarContent />
-                        {/* Note: Mobile is fixed width 64 usually, ignoring collapse state logic or forcing expand? 
-                            Ideally forcing expand for mobile. But component uses isCollapsed state.
-                            I should probably force isCollapsed=false for mobile view, OR ignore logic.
-                            Since logic uses 'isCollapsed' state, user can toggle it in mobile too? 
-                            Usually mobile drawer is full width.
-                            I'll leave it as is, user can toggle inside drawer if they want, but drawer is width constrained by container? 
-                            Container is w-64 in mobile drawer (line 97).
-                            If isCollapsed is true, it will look small inside the drawer.
-                            I'll force logic: const collapsed = isCollapsed && window.innerWidth >= 1024? 
-                            Simpler: I'll make logic respect state.
-                        */}
                     </div>
                 </div>
             )}

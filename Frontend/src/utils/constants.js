@@ -40,6 +40,17 @@ export const API_ROUTES = {
     LAB_TEST_RESULTS: '/lab-test-results',
     LAB_TEST_RESULTS_BY_REQUEST: (requestId) => `/lab-test-results/request/${requestId}`,
 
+    // Patient Visit Records
+    PATIENT_VISIT_RECORDS: '/patient-visit-records',
+    PATIENT_VISIT_RECORD_BY_ID: (id) => `/patient-visit-records/${id}`,
+    PATIENT_VISIT_RECORDS_BY_CARD: (cardId) => `/patient-visit-records/card/${cardId}`,
+
+    // Visit Vital Signs
+    VISIT_VITAL_SIGNS: '/visit-vital-signs',
+
+    // Visit Physical Exams
+    VISIT_PHYSICAL_EXAMS: '/visit-physical-exams',
+
     // Available Lab Tests
     AVAILABLE_LAB_TESTS: '/available-lab-tests',
     AVAILABLE_LAB_TEST_BY_ID: (id) => `/available-lab-tests/${id}`,

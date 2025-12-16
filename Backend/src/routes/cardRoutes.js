@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.post('/', (req, res) => cardController.createCard(req, res));
 router.get('/', (req, res) => cardController.getAllCards(req, res));
+router.get('/search', (req, res) => cardController.searchCards(req, res));
 router.get('/:id', (req, res) => cardController.getCardById(req, res));
 router.get('/number/:cardNumber', (req, res) => cardController.getCardByCardNumber(req, res));
 router.get('/patient/:patientId', (req, res) => cardController.getCardsByPatientId(req, res));

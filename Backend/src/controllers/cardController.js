@@ -78,6 +78,20 @@ class CardController {
         }
     }
 
+    async searchCards(req, res) {
+        try {
+            const { query } = req.query;
+            if (!query) {
+                return res.status(400).json({ error: 'Search query is required' });
+            }
+            const cards = await Card.search(query);
+            res.status(200).json(cards);
+        } catch (error) {
+            console.error('Error searching cards:', error);
+            res.status(500).json({ error: 'Failed to search cards', details: error.message });
+        }
+    }
+
     async deleteCard(req, res) {
         try {
             const { id } = req.params;
@@ -92,5 +106,6 @@ class CardController {
         }
     }
 }
+
 
 export default new CardController();

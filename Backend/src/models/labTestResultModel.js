@@ -7,10 +7,12 @@ class LabTestResult {
         this.test_id = data.test_id || null;
         this.test_result_value = data.test_result_value || null;
         this.interpretation = data.interpretation || null;
-        // From JOIN
+        // From JOIN with available_lab_tests
         this.test_name = data.test_name || null;
-        this.normal_range = data.normal_range || null;
-        this.unit = data.unit || null;
+        this.NormalRange_Male = data.NormalRange_Male || null;
+        this.NormalRange_Female = data.NormalRange_Female || null;
+        this.UnitOfMeasure = data.UnitOfMeasure || null;
+        this.TestCategory = data.TestCategory || null;
     }
 
     async save() {
@@ -34,7 +36,7 @@ class LabTestResult {
 
     static async findAll() {
         const [rows] = await db.execute(`
-            SELECT ltr.*, alt.test_name, alt.normal_range, alt.unit
+            SELECT ltr.*, alt.test_name, alt.NormalRange_Male, alt.NormalRange_Female, alt.UnitOfMeasure, alt.TestCategory
             FROM labtestresult ltr
             JOIN available_lab_tests alt ON ltr.test_id = alt.test_id
         `);
@@ -43,7 +45,7 @@ class LabTestResult {
 
     static async findById(id) {
         const [rows] = await db.execute(`
-            SELECT ltr.*, alt.test_name, alt.normal_range, alt.unit
+            SELECT ltr.*, alt.test_name, alt.NormalRange_Male, alt.NormalRange_Female, alt.UnitOfMeasure, alt.TestCategory
             FROM labtestresult ltr
             JOIN available_lab_tests alt ON ltr.test_id = alt.test_id
             WHERE ltr.result_id = ?
@@ -53,7 +55,7 @@ class LabTestResult {
 
     static async findByRequestId(requestId) {
         const [rows] = await db.execute(`
-            SELECT ltr.*, alt.test_name, alt.normal_range, alt.unit
+            SELECT ltr.*, alt.test_name, alt.NormalRange_Male, alt.NormalRange_Female, alt.UnitOfMeasure, alt.TestCategory
             FROM labtestresult ltr
             JOIN available_lab_tests alt ON ltr.test_id = alt.test_id
             WHERE ltr.request_id = ?

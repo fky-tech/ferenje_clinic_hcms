@@ -10,12 +10,30 @@ import LabRequests from './pages/receptionist/LabRequests';
 import Appointments from './pages/receptionist/Appointments';
 import ManageQueue from './pages/receptionist/ManageQueue';
 import { getStoredUser } from './utils/helpers';
+import { NotificationProvider } from './contexts/NotificationContext';
+import DoctorDashboard from './pages/doctor/Dashboard';
+import DoctorPatientList from './pages/doctor/DoctorPatientList';
+import DoctorPatientDetails from './pages/doctor/DoctorPatientDetails';
+import DoctorAppointments from './pages/doctor/DoctorAppointments';
+import DoctorQueue from './pages/doctor/DoctorQueue';
+import LabDashboard from './pages/lab/Dashboard';
+import Labs from './pages/lab/Labs';
+import LabSearchPatient from './pages/lab/SearchPatient';
+import LabPatientDetails from './pages/lab/PatientDetails';
 
 // Protected Route Component
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, allowedRoles }) {
     const user = getStoredUser();
 
-    if (!user || user.role !== 'receptionist') {
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        // Redirect to their own dashboard if they try to access unauthorized route
+        if (user.role === 'receptionist') return <Navigate to="/receptionist/dashboard" replace />;
+        if (user.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
+        if (user.role === 'lab_doctor') return <Navigate to="/lab/dashboard" replace />;
         return <Navigate to="/login" replace />;
     }
 
@@ -46,12 +64,15 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login />} />
 
-                <Route path="/" element={
-                    <ProtectedRoute>
-                        <MainLayout />
+                {/* Receptionist Routes */}
+                <Route path="/receptionist" element={
+                    <ProtectedRoute allowedRoles={['receptionist']}>
+                        <NotificationProvider>
+                            <MainLayout />
+                        </NotificationProvider>
                     </ProtectedRoute>
                 }>
-                    <Route index element={<Navigate to="/dashboard" replace />} />
+                    <Route index element={<Navigate to="dashboard" replace />} />
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="register-patient" element={<RegisterPatient />} />
                     <Route path="search-patient" element={<SearchPatient />} />
@@ -61,7 +82,38 @@ function App() {
                     <Route path="manage-queue" element={<ManageQueue />} />
                 </Route>
 
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                {/* Doctor Routes */}
+                <Route path="/doctor" element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <NotificationProvider>
+                            <MainLayout />
+                        </NotificationProvider>
+                    </ProtectedRoute>
+                }>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<DoctorDashboard />} />
+                    <Route path="patients" element={<DoctorPatientList />} />
+                    <Route path="patient/:cardId" element={<DoctorPatientDetails />} />
+                    <Route path="appointments" element={<DoctorAppointments />} />
+                    <Route path="queue" element={<DoctorQueue />} />
+                </Route>
+
+                <Route path="/lab" element={
+                    <ProtectedRoute allowedRoles={['lab_doctor']}>
+                        <NotificationProvider>
+                            <MainLayout />
+                        </NotificationProvider>
+                    </ProtectedRoute>
+                }>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<LabDashboard />} />
+                    <Route path="labs" element={<Labs />} />
+                    <Route path="search-patient" element={<LabSearchPatient />} />
+                    <Route path="patient/:cardId" element={<LabPatientDetails />} />
+                </Route>
+
+                {/* Root Redirect */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
             </Routes>
         </BrowserRouter>
     );

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { UserPlus, CreditCard } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
@@ -33,6 +34,7 @@ export default function RegisterPatient() {
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const { addNotification } = useNotifications();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -108,6 +110,7 @@ export default function RegisterPatient() {
             });
 
             toast.success('Patient registered successfully!');
+            addNotification(`New patient registered: ${formData.FirstName} ${formData.Father_Name}`, 'success');
 
             // Reset form
             setFormData({

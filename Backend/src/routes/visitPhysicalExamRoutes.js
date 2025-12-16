@@ -7,6 +7,7 @@ router.post('/', (req, res) => visitPhysicalExamController.createPhysicalExam(re
 router.get('/', (req, res) => visitPhysicalExamController.getAllPhysicalExams(req, res));
 router.get('/:id', (req, res) => visitPhysicalExamController.getPhysicalExamById(req, res));
 router.get('/visit/:visitId', (req, res) => visitPhysicalExamController.getPhysicalExamByVisitId(req, res));
+router.get('/card/:cardId', (req, res) => visitPhysicalExamController.getPhysicalExamsByCardId(req, res));
 router.put('/:id', (req, res) => visitPhysicalExamController.updatePhysicalExam(req, res));
 router.delete('/:id', (req, res) => visitPhysicalExamController.deletePhysicalExam(req, res));
 

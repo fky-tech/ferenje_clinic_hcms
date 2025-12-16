@@ -53,8 +53,8 @@ export default function Login() {
                 return;
             }
 
-            if (user.role !== 'receptionist') {
-                toast.error('Access denied. This portal is for receptionists only.');
+            if (user.role !== 'receptionist' && user.role !== 'doctor' && user.role !== 'lab_doctor') {
+                toast.error('Access denied. Invalid role.');
                 return;
             }
 
@@ -68,7 +68,16 @@ export default function Login() {
             setStoredUser(user);
 
             toast.success(`Welcome back, ${user.first_name}!`);
-            navigate('/dashboard');
+
+            if (user.role === 'receptionist') {
+                navigate('/receptionist/dashboard');
+            } else if (user.role === 'doctor') {
+                navigate('/doctor/dashboard');
+            } else if (user.role === 'lab_doctor') {
+                navigate('/lab/dashboard')
+            } else {
+                toast.error('Unknown role');
+            }
         } catch (error) {
             console.error('Login error:', error);
             if (error.response?.status === 404) {
@@ -88,8 +97,8 @@ export default function Login() {
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
                             <LogIn className="w-8 h-8 text-primary-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900">Ferenje Clinic</h1>
-                        <p className="text-gray-500 mt-2">Receptionist Portal</p>
+                        <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                        <p className="text-gray-500 mt-2">HCMS Portal</p>
                     </div>
 
                     {/* Form */}

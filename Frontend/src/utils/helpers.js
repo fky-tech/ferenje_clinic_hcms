@@ -204,6 +204,10 @@ export const clearStoredUser = () => {
     localStorage.removeItem('user');
 };
 
+export const logoutUser = () => {
+    clearStoredUser();
+};
+
 // Search History
 export const getSearchHistory = () => {
     try {

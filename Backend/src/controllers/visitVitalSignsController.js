@@ -64,6 +64,17 @@ class VisitVitalSignsController {
         }
     }
 
+    async getVitalSignsByCardId(req, res) {
+        try {
+            const { cardId } = req.params;
+            const vitals = await VisitVitalSigns.findByCardId(cardId);
+            res.status(200).json(vitals);
+        } catch (error) {
+            console.error('Error fetching vital signs by card:', error);
+            res.status(500).json({ error: 'Failed to fetch vital signs by card', details: error.message });
+        }
+    }
+
     async deleteVitalSigns(req, res) {
         try {
             const { id } = req.params;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
@@ -14,6 +15,7 @@ import toast from 'react-hot-toast';
 export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { addNotification } = useNotifications();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [patients, setPatients] = useState([]);
@@ -109,6 +111,7 @@ export default function Appointments() {
       } else {
         await api.post(API_ROUTES.APPOINTMENTS, payload);
         toast.success('Appointment scheduled successfully');
+        addNotification(`New appointment scheduled for Dr. ${doctors.find(d => d.doctor_id == formData.doctor_id)?.last_name || 'Doctor'}`, 'success');
       }
 
       setIsModalOpen(false);

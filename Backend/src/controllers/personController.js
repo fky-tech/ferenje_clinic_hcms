@@ -10,9 +10,9 @@ class PersonController {
             }
 
             // Check valid role
-            const validRoles = ['doctor', 'receptionist', 'admin'];
+            const validRoles = ['doctor', 'receptionist', 'admin', 'lab_doctor'];
             if (!validRoles.includes(role)) {
-                return res.status(400).json({ error: 'Invalid role. Must be doctor, receptionist, or admin' });
+                return res.status(400).json({ error: 'Invalid role. Must be doctor, receptionist, admin, or lab_doctor' });
             }
 
             // Check if email already exists

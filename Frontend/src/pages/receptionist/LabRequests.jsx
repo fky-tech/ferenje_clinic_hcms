@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { FlaskConical, X } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
@@ -18,6 +19,7 @@ export default function LabRequests() {
     const [testsLoading, setTestsLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [processingPayment, setProcessingPayment] = useState(false);
+    const { addNotification } = useNotifications();
 
     useEffect(() => {
         fetchLabRequests();
@@ -77,7 +79,13 @@ export default function LabRequests() {
                 status: 'paid'
             });
 
+            // Update Payment Status for the Tests
+            await api.put(`/lab-request-tests/request/${selectedRequest.request_id}/payment-status`, {
+                status: 'paid'
+            });
+
             toast.success('Payment processed successfully');
+            addNotification(`Lab payment received for ${selectedRequest.FirstName} ${selectedRequest.Father_Name}`, 'success');
             setIsModalOpen(false);
             // Optional: Update request status locally or refetch
             fetchLabRequests();
@@ -93,12 +101,14 @@ export default function LabRequests() {
         return requestTests.reduce((sum, test) => sum + (parseFloat(test.price) || 0), 0);
     };
 
+    const isPaid = requestTests.length > 0 && requestTests.every(test => test.payment_status === 'paid');
+
     const columns = [
         { header: 'Request ID', accessor: 'request_id' },
         { header: 'Patient', render: (row) => `${row.FirstName || ''} ${row.Father_Name || ''}` },
         { header: 'Card Number', accessor: 'CardNumber' },
         {
-            header: 'Status', render: (row) => (
+            header: 'Lab Status', render: (row) => (
                 <span className={`px-2 py-1 rounded text-xs font-medium ${row.LabStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
                     }`}>
                     {row.LabStatus}
@@ -136,15 +146,20 @@ export default function LabRequests() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={selectedRequest?.LabStatus?.toLowerCase() === 'pending' ? "Process Lab Payment" : "Lab Request Details"}
+                title={!isPaid ? "Process Lab Payment" : "Lab Request Details"}
             >
                 {selectedRequest && (
                     <div className="space-y-4">
-                        <div className="bg-gray-50 p-3 rounded-md mb-4">
+                        <div className="bg-gray-50 p-3 rounded-md mb-4 grid grid-cols-2 gap-2">
                             <p className="text-sm text-gray-600">Patient: <span className="font-medium text-gray-900">{selectedRequest.FirstName} {selectedRequest.Father_Name}</span></p>
                             <p className="text-sm text-gray-600">Card No: <span className="font-medium text-gray-900">{selectedRequest.CardNumber}</span></p>
                             <p className="text-sm text-gray-600">Date: <span className="font-medium text-gray-900">{formatDate(selectedRequest.RequestDate)}</span></p>
-                            <p className="text-sm text-gray-600">Status: <span className={`font-medium ${selectedRequest.LabStatus === 'pending' ? 'text-yellow-600' : 'text-green-600'}`}>{selectedRequest.LabStatus}</span></p>
+                            <p className="text-sm text-gray-600">Lab Status: <span className={`font-medium ${selectedRequest.LabStatus === 'pending' ? 'text-yellow-600' : 'text-green-600'}`}>{selectedRequest.LabStatus}</span></p>
+                            <p className="text-sm text-gray-600 col-span-2">Payment Status:
+                                <span className={`font-bold ml-2 ${isPaid ? 'text-green-600' : 'text-red-600'}`}>
+                                    {isPaid ? 'PAID' : 'UNPAID'}
+                                </span>
+                            </p>
                         </div>
 
                         <h3 className="text-md font-medium text-gray-900">Tests Ordered</h3>
@@ -157,6 +172,7 @@ export default function LabRequests() {
                                         <tr>
                                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Test Name</th>
                                             <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Price</th>
+                                            <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -164,11 +180,17 @@ export default function LabRequests() {
                                             <tr key={index}>
                                                 <td className="px-4 py-2 text-sm text-gray-900">{test.test_name}</td>
                                                 <td className="px-4 py-2 text-sm text-gray-900 text-right">{formatCurrency(test.price)}</td>
+                                                <td className="px-4 py-2 text-sm text-center">
+                                                    <span className={`px-2 py-0.5 rounded text-xs ${test.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                        {test.payment_status}
+                                                    </span>
+                                                </td>
                                             </tr>
                                         ))}
                                         <tr className="bg-gray-50 font-medium">
                                             <td className="px-4 py-2 text-sm text-gray-900">Total</td>
                                             <td className="px-4 py-2 text-sm text-gray-900 text-right">{formatCurrency(getTotalPrice())}</td>
+                                            <td></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -177,7 +199,7 @@ export default function LabRequests() {
 
                         <div className="flex justify-end pt-4 border-t space-x-3">
                             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Close</Button>
-                            {selectedRequest.LabStatus?.toLowerCase() === 'pending' && (
+                            {!isPaid && (
                                 <Button
                                     variant="primary"
                                     onClick={handlePayment}

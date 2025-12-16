@@ -3,9 +3,9 @@ import LabTestResult from '../models/labTestResultModel.js';
 class LabTestResultController {
     async createResult(req, res) {
         try {
-            const { request_id, result_value, result_date } = req.body;
-            if (!request_id || !result_value || !result_date) {
-                return res.status(400).json({ error: 'Missing required fields' });
+            const { request_id, test_id, test_result_value } = req.body;
+            if (!request_id || !test_id || !test_result_value) {
+                return res.status(400).json({ error: 'Missing required fields: request_id, test_id, test_result_value' });
             }
             const result = await LabTestResult.create(req.body);
             res.status(201).json({ message: 'Lab result recorded successfully', result_id: result });
