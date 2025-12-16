@@ -55,21 +55,18 @@ class ReportController {
         }
     }
 
-    // 2. Cron Job Function - Saves Excel file to disk
+    // 2. Cron Job Function - Saves SEPARATE Excel files to disk
     async generateDailyExport() {
-        console.log('Running daily export cron job (Excel)...');
+        console.log('Running daily export cron job (Separate Excels)...');
         try {
             const today = new Date().toISOString().slice(0, 10);
             const reportsDir = path.join(__dirname, '../../reports');
+            const dateDir = path.join(reportsDir, today);
 
-            // Ensure directory exists
-            if (!fs.existsSync(reportsDir)) {
-                fs.mkdirSync(reportsDir, { recursive: true });
+            // Ensure date directory exists
+            if (!fs.existsSync(dateDir)) {
+                fs.mkdirSync(dateDir, { recursive: true });
             }
-
-            const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'Ferenje Clinic HCMS';
-            workbook.created = new Date();
 
             // --- 1. Fetch Data ---
             // Financials
@@ -100,10 +97,11 @@ class ReportController {
                 WHERE DATE(pvr.DateOfVisit) = ?
             `, [today]);
 
-            // --- 2. Create Sheets ---
+            // --- 2. Generate and Save Separate Files ---
 
-            // Sheet 1: Summary
-            const summarySheet = workbook.addWorksheet('Summary');
+            // A. Summary Report
+            const summaryWorkbook = new ExcelJS.Workbook();
+            const summarySheet = summaryWorkbook.addWorksheet('Summary');
             summarySheet.columns = [
                 { header: 'Metric', key: 'metric', width: 30 },
                 { header: 'Value', key: 'value', width: 20 }
@@ -115,9 +113,11 @@ class ReportController {
                 { metric: 'Total Lab Requests', value: labs.length }
             ]);
             summarySheet.getRow(1).font = { bold: true };
+            await summaryWorkbook.xlsx.writeFile(path.join(dateDir, `Summary_Report_${today}.xlsx`));
 
-            // Sheet 2: Financial Report
-            const finSheet = workbook.addWorksheet('Financial Report');
+            // B. Financial Report
+            const finWorkbook = new ExcelJS.Workbook();
+            const finSheet = finWorkbook.addWorksheet('Financial Report');
             finSheet.columns = [
                 { header: 'Payment ID', key: 'payment_id', width: 15 },
                 { header: 'Card No', key: 'CardNumber', width: 15 },
@@ -129,9 +129,11 @@ class ReportController {
             ];
             finSheet.addRows(payments);
             finSheet.getRow(1).font = { bold: true };
+            await finWorkbook.xlsx.writeFile(path.join(dateDir, `Financial_Report_${today}.xlsx`));
 
-            // Sheet 3: Patient Visits
-            const visitSheet = workbook.addWorksheet('Patient Visits');
+            // C. Patient Visits Report
+            const visitWorkbook = new ExcelJS.Workbook();
+            const visitSheet = visitWorkbook.addWorksheet('Patient Visits');
             visitSheet.columns = [
                 { header: 'Visit ID', key: 'VisitRecordID', width: 15 },
                 { header: 'Card No', key: 'CardNumber', width: 15 },
@@ -141,9 +143,11 @@ class ReportController {
             ];
             visitSheet.addRows(visits);
             visitSheet.getRow(1).font = { bold: true };
+            await visitWorkbook.xlsx.writeFile(path.join(dateDir, `Patient_Visits_Report_${today}.xlsx`));
 
-            // Sheet 4: Lab Activity
-            const labSheet = workbook.addWorksheet('Lab Activity');
+            // D. Lab Activity Report
+            const labWorkbook = new ExcelJS.Workbook();
+            const labSheet = labWorkbook.addWorksheet('Lab Activity');
             labSheet.columns = [
                 { header: 'Request ID', key: 'request_id', width: 15 },
                 { header: 'Card No', key: 'CardNumber', width: 15 },
@@ -153,12 +157,9 @@ class ReportController {
             ];
             labSheet.addRows(labs);
             labSheet.getRow(1).font = { bold: true };
+            await labWorkbook.xlsx.writeFile(path.join(dateDir, `Lab_Activity_Report_${today}.xlsx`));
 
-            // --- 3. Save File ---
-            const filePath = path.join(reportsDir, `daily_report_${today}.xlsx`);
-            await workbook.xlsx.writeFile(filePath);
-
-            console.log(`Daily Excel report saved to ${filePath}`);
+            console.log(`Daily Excel reports (Separate) saved to ${dateDir} for ${today}`);
             return true;
         } catch (error) {
             console.error('Error generating daily export:', error);
