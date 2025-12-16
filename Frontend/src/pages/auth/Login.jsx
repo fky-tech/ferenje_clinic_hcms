@@ -53,7 +53,7 @@ export default function Login() {
                 return;
             }
 
-            if (user.role !== 'receptionist' && user.role !== 'doctor' && user.role !== 'lab_doctor') {
+            if (user.role !== 'receptionist' && user.role !== 'doctor' && user.role !== 'lab_doctor' && user.role !== 'admin') {
                 toast.error('Access denied. Invalid role.');
                 return;
             }
@@ -74,7 +74,9 @@ export default function Login() {
             } else if (user.role === 'doctor') {
                 navigate('/doctor/dashboard');
             } else if (user.role === 'lab_doctor') {
-                navigate('/lab/dashboard')
+                navigate('/lab/dashboard');
+            } else if (user.role === 'admin') {
+                navigate('/admin/dashboard');
             } else {
                 toast.error('Unknown role');
             }

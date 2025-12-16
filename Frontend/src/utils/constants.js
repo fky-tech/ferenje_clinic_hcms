@@ -3,6 +3,13 @@ export const API_ROUTES = {
     // Auth
     LOGIN: '/persons/email',
 
+    // Admin
+    ADMIN: {
+        DASHBOARD_STATS: '/admin/dashboard/stats',
+        REPORTS: '/admin/reports',
+        GENERATE_REPORT: '/admin/reports/generate'
+    },
+
     // Patients
     PATIENTS: '/patients',
     PATIENT_BY_ID: (id) => `/patients/${id}`,

@@ -20,6 +20,11 @@ import LabDashboard from './pages/lab/Dashboard';
 import Labs from './pages/lab/Labs';
 import LabSearchPatient from './pages/lab/SearchPatient';
 import LabPatientDetails from './pages/lab/PatientDetails';
+import AdminDashboard from './pages/admin/Dashboard';
+import ManageDoctors from './pages/admin/ManageDoctors';
+import ManageReceptionists from './pages/admin/ManageReceptionists';
+import ViewPatients from './pages/admin/Patients';
+import Reports from './pages/admin/Reports';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles }) {
@@ -110,6 +115,22 @@ function App() {
                     <Route path="labs" element={<Labs />} />
                     <Route path="search-patient" element={<LabSearchPatient />} />
                     <Route path="patient/:cardId" element={<LabPatientDetails />} />
+                </Route>
+
+                {/* Admin Routes */}
+                <Route path="/admin" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                        <NotificationProvider>
+                            <MainLayout />
+                        </NotificationProvider>
+                    </ProtectedRoute>
+                }>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="doctors" element={<ManageDoctors />} />
+                    <Route path="receptionists" element={<ManageReceptionists />} />
+                    <Route path="patients" element={<ViewPatients />} />
+                    <Route path="reports" element={<Reports />} />
                 </Route>
 
                 {/* Root Redirect */}

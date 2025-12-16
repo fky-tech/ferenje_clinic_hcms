@@ -38,6 +38,14 @@ const labDoctorMenuItems = [
     { path: '/lab/search-patient', icon: Search, label: 'Search Patients' },
 ];
 
+const adminMenuItems = [
+    { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/admin/doctors', icon: UserPlus, label: 'Manage Doctors' },
+    { path: '/admin/receptionists', icon: Users, label: 'Manage Receptionists' },
+    { path: '/admin/patients', icon: Search, label: 'View Patients' },
+    { path: '/admin/reports', icon: FlaskConical, label: 'Reports' }, // Using FlaskConical as placeholder or FileText
+];
+
 export default function Sidebar() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -51,6 +59,7 @@ export default function Sidebar() {
     let menuItems = receptionistMenuItems;
     if (role === 'doctor') menuItems = doctorMenuItems;
     if (role === 'lab_doctor') menuItems = labDoctorMenuItems;
+    if (role === 'admin') menuItems = adminMenuItems;
 
     // Get portal name from person_type
     const getPortalName = () => {
@@ -59,6 +68,7 @@ export default function Sidebar() {
         if (userRole === 'doctor') return 'Doctor Portal';
         if (userRole === 'receptionist') return 'Receptionist Portal';
         if (userRole === 'lab_doctor') return 'Lab Portal';
+        if (userRole === 'admin') return 'Admin Portal';
         return 'HCMS Portal';
     };
     const portalName = getPortalName();

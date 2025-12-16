@@ -22,6 +22,8 @@ import labRequestRoutes from './src/routes/labRequestRoutes.js';
 import labRequestTestRoutes from './src/routes/labRequestTestRoutes.js';
 import labTestResultRoutes from './src/routes/labTestResultRoutes.js';
 import medicationRoutes from './src/routes/medicationRoutes.js';
+import adminRoutes from './src/routes/adminRoutes.js';
+import initCronJobs from './src/services/cronService.js';
 
 // Load environment variables
 dotenv.config();
@@ -60,6 +62,10 @@ app.use('/api/lab-requests', labRequestRoutes);
 app.use('/api/lab-request-tests', labRequestTestRoutes);
 app.use('/api/lab-test-results', labTestResultRoutes);
 app.use('/api/medications', medicationRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Initialize Cron Jobs
+initCronJobs();
 
 // 404 handler
 app.use((req, res) => {
