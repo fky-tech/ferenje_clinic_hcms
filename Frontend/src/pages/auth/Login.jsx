@@ -225,7 +225,7 @@ export default function Login() {
                     <div className="mt-10 pt-8 border-t border-gray-100 text-center">
                         <p className="text-sm text-gray-400 font-medium">
                             For access issues, please 
-                            <a href="#" className="ml-1 text-blue-600 hover:text-blue-700 hover:underline font-bold transition-colors">Contact Admin</a>
+                            <a href="#" className="ml-1 text-gray-600 hover:text-gray-700 hover:underline font-bold transition-colors">Contact Admin</a>
                         </p>
                     </div>
                 </div>
