@@ -48,7 +48,7 @@ export const generatePatientId = () => {
 };
 
 export const generateCardNumber = () => {
-    const prefix = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit number prefix
+    const prefix = Math.floor(100000 + Math.random() * 900000).toString(); 
     const timestamp = Date.now().toString().slice(-8);
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     return `${prefix}${timestamp}${random}`;

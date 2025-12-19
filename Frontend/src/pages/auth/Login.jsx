@@ -105,10 +105,10 @@ export default function Login() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
       {/* Top Branding */}
-      <div className="absolute top-6 left-14 z-10 flex items-center gap-3">
+      <div className="absolute top-6 left-14 z-10 flex items-center gap-1">
         <div className="w-14 h-12  rounded-full overflow-hidden">
           <img
-            src="/images/logo2.jpg"
+            src="/images/logo.png"
             alt="Ferenjie Logo"
             className="w-full h-full object-cover"
           />
