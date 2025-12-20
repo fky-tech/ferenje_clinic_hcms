@@ -80,12 +80,21 @@ export default function Sidebar() {
 
     const SidebarContent = () => (
         <div className="flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300">
-            {/* Logo & Toggle */}
             <div className={`h-20 flex items-center border-b border-gray-200 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-6'}`}>
                 {!isCollapsed && (
+                    <div className="flex items-center gap-1">
+                           <div className="w-14 h-14  rounded-full overflow-hidden">
+                            <img
+                            src="/images/logo.png"
+                            alt="Ferenjie Logo"
+                            className="w-full h-full object-cover"
+                            />
+                            </div>
                     <div className="overflow-hidden whitespace-nowrap">
-                        <h1 className="text-xl font-bold text-primary-600 truncate">Ferenje Clinic</h1>
-                        <p className="text-xs text-gray-500 truncate">{portalName}</p>
+                       
+                        <h1 className="text-lg font-bold text-primary-600 truncate">Ferenje Clinic</h1>
+                        {/* <p className="text-xs text-gray-500 truncate">{portalName}</p> */}
+                    </div>
                     </div>
                 )}
                 <button
@@ -114,13 +123,13 @@ export default function Sidebar() {
                                     flex items-center rounded-lg transition-all duration-200
                                     ${isCollapsed ? 'justify-center p-3' : 'px-4 py-3'}
                                     ${isActive
-                                        ? 'bg-primary-600 text-white shadow-md'
+                                        ? 'bg-gradient-to-r from-gray-900 to-blue-700/70 text-white shadow-md'
                                         : 'text-gray-700 hover:bg-gray-100'
                                     }
                                 `}
                             >
-                                <Icon className={`w-6 h-6 ${!isCollapsed && 'mr-3'}`} />
-                                {!isCollapsed && <span className="font-medium whitespace-nowrap">{item.label}</span>}
+                                <Icon className={`w-4 h-4 ${!isCollapsed && 'mr-3'}`} />
+                                {!isCollapsed && <span className=" text-sm whitespace-nowrap">{item.label}</span>}
                             </Link>
 
                             {/* Hover Tooltip (Collapsed Only) */}
@@ -141,8 +150,8 @@ export default function Sidebar() {
                     className={`w-full flex items-center rounded-lg transition-all duration-200 text-red-600 hover:bg-red-50 ${isCollapsed ? 'justify-center p-3' : 'px-4 py-3'}`}
                     title={isCollapsed ? "Logout" : ""}
                 >
-                    <LogOut className={`w-6 h-6 ${!isCollapsed && 'mr-3'}`} />
-                    {!isCollapsed && <span className="font-medium">Logout</span>}
+                    <LogOut className={`w-4 h-4 ${!isCollapsed && 'mr-3'}`} />
+                    {!isCollapsed && <span className="font-medium text-sm " >Logout</span>}
                 </button>
             </div>
         </div>

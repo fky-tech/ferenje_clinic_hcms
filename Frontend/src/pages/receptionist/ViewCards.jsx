@@ -119,11 +119,12 @@ export default function ViewCards() {
                         className="group relative w-full max-w-sm mx-auto aspect-[1.586/1] rounded-xl cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl select-none"
                     >
                         {/* Main Card Design */}
-                        <div className="absolute inset-0 bg-[#ffffff] rounded-xl p-5 flex flex-col justify-between shadow-lg overflow-hidden border border-slate-700/50">
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-50  to-blue-100/50 
+                        hover:from-blue-100/70  hover:to-gray-50  rounded-xl p-5 flex flex-col justify-between shadow-lg overflow-hidden border border-slate-700/50">
                             
                             {/* Decorative Wave/Pulse */}
                             <div className="absolute right-4 top-2 opacity-70">
-                                <Activity className="w-12 h-12 text-blue-900" />
+                                <Activity className="w-8 h-8 text-blue-900" />
                             </div>
 
                             {/* Top: Header */}

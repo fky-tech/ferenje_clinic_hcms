@@ -214,15 +214,7 @@ export default function SearchPatient() {
                             Manage and search patient records efficiently
                         </p>
                     </div>
-                    <Button
-                        variant="primary"
-                        icon={UserPlus}
-                        className="w-full sm:w-auto mt-1 sm:mt-0"
-                        size="sm"
-                    >
-                        <span className="hidden sm:inline">New Patient</span>
-                        <span className="sm:hidden">Add Patient</span>
-                    </Button>
+                   
                 </div>
 
                 {/* Search Section */}
@@ -243,7 +235,8 @@ export default function SearchPatient() {
                             <Button
                                 onClick={handleSearch}
                                 disabled={loading}
-                                className="w-full sm:w-auto px-4 py-2"
+                                className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-gray-900  to-blue-600 
+                        "
                                 size="sm"
                             >
                                 {loading ? (

@@ -515,8 +515,8 @@ export default function RegisterPatient() {
               type="submit"
               disabled={loading}
               className="flex items-center mt-[-12px] mb-[12px] justify-center gap-2 py-1.5 px-4 rounded-lg text-sm font-semibold 
-                        bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 
-                        hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700 
+                        bg-gradient-to-r from-gray-900 via-blue-700 to-blue-600 
+                        hover:from-blue-600 hover:via-blue-700 hover:to-gray-900 
                         text-white shadow-md shadow-blue-300 
                         transition-all duration-200 active:scale-95 
                         min-h-[32px] w-full sm:w-auto 

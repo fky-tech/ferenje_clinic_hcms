@@ -202,7 +202,8 @@ export default function Login() {
                         <Button
                             type="submit"
                             variant="primary"
-                            className="w-full py-4 bg-gray-700 hover:bg-gray-700 text-white rounded-xl shadow-lg shadow-blue-200 flex items-center justify-center gap-2 font-bold text-base transition-all active:scale-[0.98]"
+                            className="w-full py-4 bg-gradient-to-r from-gray-900  to-blue-700/70 
+                        hover:from-blue-600  hover:to-gray-900  text-white rounded-xl shadow-lg shadow-blue-200 flex items-center justify-center gap-2 font-bold text-base transition-all active:scale-[0.98]"
                             disabled={loading}
                         >
                             {loading ? (

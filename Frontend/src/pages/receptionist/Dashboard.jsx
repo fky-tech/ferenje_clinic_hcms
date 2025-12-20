@@ -103,8 +103,9 @@ export default function Dashboard() {
             icon: Users,
             trend: '+12%',
             trendUp: true,
-            color: 'text-blue-600',
+            color: 'text-blue-900',
             bg: 'bg-blue-50',
+            
         },
         {
             title: 'Appointments',
@@ -149,12 +150,36 @@ export default function Dashboard() {
         },
     ];
 
-    const quickActions = [
-        { label: 'Register', icon: UserPlus, to: '/register-patient', variant: 'primary', desc: 'Add new patient' },
-        { label: 'Schedule', icon: Calendar, to: '/appointments', variant: 'secondary', desc: 'Book visit' },
-        { label: 'Search', icon: Search, to: '/search-patient', variant: 'secondary', desc: 'Find records' },
-        { label: 'Cards', icon: CreditCard, to: '/view-cards', variant: 'secondary', desc: 'Billing info' },
-    ];
+  const quickActions = [
+    { 
+        label: 'Register', 
+        icon: UserPlus, 
+        to: '/receptionist/register-patient',  // Added leading slash
+        variant: 'primary', 
+        desc: 'Add new patient' 
+    },
+    { 
+        label: 'Schedule', 
+        icon: Calendar, 
+        to: '/receptionist/appointments',  // Added leading slash and receptionist prefix
+        variant: 'secondary', 
+        desc: 'Book visit' 
+    },
+    { 
+        label: 'Search', 
+        icon: Search, 
+        to: '/receptionist/search-patient',  // Added leading slash and receptionist prefix
+        variant: 'secondary', 
+        desc: 'Find records' 
+    },
+    { 
+        label: 'Cards', 
+        icon: CreditCard, 
+        to: '/receptionist/view-cards',  // Added leading slash and receptionist prefix
+        variant: 'secondary', 
+        desc: 'Billing info' 
+    },
+];
 
     // -------------------------------------------------------------------------
     //                       RENDER

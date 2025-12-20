@@ -158,7 +158,8 @@ export default function Appointments() {
           <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
           <p className="text-gray-500 mt-1">Schedule and manage appointments</p>
         </div>
-        <Button variant="primary" onClick={handleScheduleNew}>Schedule New</Button>
+        <Button variant="primary" className='bg-gradient-to-r from-gray-900  to-blue-600 
+                        hover:from-blue-600  hover:to-gray-900 ' onClick={handleScheduleNew}>Schedule New</Button>
       </div>
 
       <Card title={`Total Appointments: ${appointments.length}`} icon={CalendarIcon}>

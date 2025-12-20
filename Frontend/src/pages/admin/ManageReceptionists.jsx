@@ -163,7 +163,8 @@ export default function ManageReceptionists() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-800">Manage Receptionists</h1>
-                <Button onClick={() => handleOpenModal()} icon={Plus}>Add Receptionist</Button>
+                <Button onClick={() => handleOpenModal()} className='bg-gradient-to-r from-gray-900  to-blue-700/70 
+                        hover:from-blue-600  hover:to-gray-900 ' icon={Plus}>Add Receptionist</Button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-4">
@@ -240,7 +241,8 @@ export default function ManageReceptionists() {
                     </div>
                     <div className="flex justify-end gap-3 mt-6">
                         <Button variant="secondary" onClick={() => setIsModalOpen(false)} type="button">Cancel</Button>
-                        <Button type="submit">Save Receptionist</Button>
+                        <Button className='bg-gradient-to-r from-gray-900  to-blue-700/70 
+                        hover:from-blue-600  hover:to-gray-900 ' type="submit">Save Receptionist</Button>
                     </div>
                 </form>
             </Modal>

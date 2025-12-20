@@ -107,7 +107,8 @@ export default function ManageQueue() {
                     <h1 className="text-3xl font-bold text-gray-900">Manage Queue</h1>
                     <p className="text-gray-500 mt-1">Add patients to queue and monitor status</p>
                 </div>
-                <Button variant="primary" onClick={handleAddToQueue}>Add to Queue</Button>
+                <Button variant="primary" className='bg-gradient-to-r from-gray-900  to-blue-700/70 
+                        hover:from-blue-600  hover:to-gray-900 ' onClick={handleAddToQueue}>Add to Queue</Button>
             </div>
 
             <Card title={`Patients in Queue: ${queues.filter(q => q.status === 'waiting').length}`} icon={Users}>
