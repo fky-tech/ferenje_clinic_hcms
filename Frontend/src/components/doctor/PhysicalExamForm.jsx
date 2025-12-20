@@ -3,20 +3,22 @@ import { Stethoscope } from 'lucide-react';
 
 export default function PhysicalExamForm({ data, onChange, readOnly = false }) {
     const systems = [
-        'HEENT', 'Respiratory System', 'CVS', 'Abdomen', 'GUS', 'CNS', 'Musculoskeletal', 'Integumentary', 'Lymphatic'
+        'HEENT', 'Respiratory System', 'CVS / Lymphatic', 'Abdomen', 'GUS', 'CNS', 'Musculoskeletal',
+        'Integumentary'
+        //  'Lymphatic'
     ];
 
     // Map display names to backend keys
     const systemKeyMap = {
         'HEENT': 'heent',
         'Respiratory System': 'respiratory_system',
-        'CVS': 'cvs',
+        'CVS / Lymphatic': 'cvs',
         'Abdomen': 'abdominal_exam',
         'GUS': 'gus',
         'CNS': 'ns',
         'Musculoskeletal': 'mss',
-        'Integumentary': 'integumentary', // Backend might not have this, check model
-        'Lymphatic': 'lymphatic' // Backend might not have this
+        'Integumentary': 'integumentary',
+        // 'Lymphatic': 'lymphatic'
     };
 
     return (

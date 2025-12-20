@@ -104,7 +104,7 @@ export const PAYMENT_TYPES = {
 export const GENDER_OPTIONS = [
     { value: 'Male', label: 'Male' },
     { value: 'Female', label: 'Female' },
-    { value: 'Other', label: 'Other' },
+    // { value: 'Other', label: 'Other' },
 ];
 
 // Lab Request Status

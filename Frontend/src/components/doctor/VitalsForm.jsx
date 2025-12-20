@@ -17,8 +17,8 @@ export default function VitalsForm({ data, onChange, readOnly = false }) {
                 <Input label="Resp Rate" name="respiratory_rate" type="number" value={data.respiratory_rate || ''} onChange={onChange} disabled={readOnly} />
                 <Input label="O2 Sat (%)" name="oxygen_saturation" type="number" value={data.oxygen_saturation || ''} onChange={onChange} disabled={readOnly} />
                 <Input label="Weight (kg)" name="weight" type="number" step="0.1" value={data.weight || ''} onChange={onChange} disabled={readOnly} />
-                <Input label="Height (cm)" name="height" type="number" value={data.height || ''} onChange={onChange} disabled={readOnly} />
-                <div className="col-span-2">
+                {/* <Input label="Height (cm)" name="height" type="number" value={data.height || ''} onChange={onChange} disabled={readOnly} /> */}
+                {/* <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700">BMI</label>
                     <input
                         type="text"
@@ -26,7 +26,7 @@ export default function VitalsForm({ data, onChange, readOnly = false }) {
                         disabled
                         className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm"
                     />
-                </div>
+                </div> */}
             </div>
         </div>
     );

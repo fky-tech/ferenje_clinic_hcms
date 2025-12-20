@@ -71,13 +71,64 @@ class Card {
         );
         return rows.map(row => new Card(row));
     }
+    
+
+    // static async update(id, cardData) {
+    //     const { patient_id, CardNumber, status, issue_date, expire_date } = cardData;
+    //     const [result] = await db.execute(
+    //         'UPDATE card SET patient_id = ?, CardNumber = ?, status = ?, issue_date = ?, expire_date = ? WHERE card_id = ?',
+    //         [patient_id, CardNumber, status, issue_date, expire_date, id]
+    //     );
+    //     return result.affectedRows;
+    // }
 
     static async update(id, cardData) {
-        const { patient_id, CardNumber, status, issue_date, expire_date } = cardData;
+        const {
+            patient_id,
+            CardNumber,
+            status,
+            issue_date,
+            expire_date
+        } = cardData;
+
+        // Normalize issue_date
+        const issueDate =
+            issue_date instanceof Date
+                ? issue_date.toISOString().slice(0, 19).replace('T', ' ')
+                : typeof issue_date === 'string'
+                    ? issue_date.includes('T')
+                        ? issue_date.slice(0, 19).replace('T', ' ')
+                        : issue_date
+                    : null;
+
+        // Normalize expire_date
+        const expireDate =
+            expire_date instanceof Date
+                ? expire_date.toISOString().slice(0, 19).replace('T', ' ')
+                : typeof expire_date === 'string'
+                    ? expire_date.includes('T')
+                        ? expire_date.slice(0, 19).replace('T', ' ')
+                        : expire_date
+                    : null;
+
         const [result] = await db.execute(
-            'UPDATE card SET patient_id = ?, CardNumber = ?, status = ?, issue_date = ?, expire_date = ? WHERE card_id = ?',
-            [patient_id, CardNumber, status, issue_date, expire_date, id]
+            `UPDATE card
+            SET patient_id = ?,
+                CardNumber = ?,
+                status = ?,
+                issue_date = ?,
+                expire_date = ?
+            WHERE card_id = ?`,
+            [
+                patient_id,
+                CardNumber,
+                status,
+                issueDate,
+                expireDate,
+                id
+            ]
         );
+
         return result.affectedRows;
     }
 

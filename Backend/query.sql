@@ -31,6 +31,7 @@ CREATE TABLE `doctor` (
 
 CREATE TABLE `patient` (
   `patient_id` INT NOT NULL,
+  `doctor_id` INT NOT NULL,
   `FirstName` VARCHAR(100) NOT NULL, -- Added data type
   `Father_Name` VARCHAR(100), -- Renamed and added data type
   `GrandFather_Name` VARCHAR(100), -- Renamed and added data type
@@ -42,7 +43,8 @@ CREATE TABLE `patient` (
   `HouseNo` VARCHAR(50), -- Added data type
   `PhoneNo` VARCHAR(20), -- Added data type
   `date_registered` DATE, -- Added data type
-  PRIMARY KEY (`patient_id`)
+  PRIMARY KEY (`patient_id`),
+  FOREIGN KEY (`doctor_id`) REFERENCES `doctor` (`doctor_id`) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE `card` (
@@ -140,6 +142,7 @@ CREATE TABLE VisitPhysicalExam (
   CVS_Findings TEXT,
   CNS_Findings TEXT,
   MSS_Findings TEXT,
+  Integumentary TEXT,
   
   FOREIGN KEY (VisitRecordID) REFERENCES PatientVisitRecord(VisitRecordID) ON DELETE CASCADE ON UPDATE CASCADE
 );
