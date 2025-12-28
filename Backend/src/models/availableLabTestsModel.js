@@ -4,11 +4,11 @@ class AvailableLabTests {
     constructor(data = {}) {
         this.test_id = data.test_id || null;
         this.test_name = data.test_name || null;
-        this.test_category = data.test_category || null;
-        this.description = data.description || null;
+        this.TestCategory = data.TestCategory || data.test_category || null;
+        this.UnitOfMeasure = data.UnitOfMeasure || data.unit || null;
+        this.NormalRange_Male = data.NormalRange_Male || data.normal_range || null;
+        this.NormalRange_Female = data.NormalRange_Female || null;
         this.price = data.price || null;
-        this.normal_range = data.normal_range || null;
-        this.unit = data.unit || null;
     }
 
     async save() {
@@ -22,11 +22,11 @@ class AvailableLabTests {
     }
 
     static async create(testData) {
-        const { test_name, test_category, description, price, normal_range, unit } = testData;
+        const { test_name, TestCategory, UnitOfMeasure, NormalRange_Male, NormalRange_Female, price } = testData;
         const [result] = await db.execute(
-            `INSERT INTO available_lab_tests (test_name, test_category, description, price, normal_range, unit) 
+            `INSERT INTO available_lab_tests (test_name, TestCategory, UnitOfMeasure, NormalRange_Male, NormalRange_Female, price) 
        VALUES (?, ?, ?, ?, ?, ?)`,
-            [test_name, test_category, description, price, normal_range, unit]
+            [test_name, TestCategory, UnitOfMeasure, NormalRange_Male, NormalRange_Female, price]
         );
         return result.insertId;
     }
@@ -54,19 +54,19 @@ class AvailableLabTests {
 
     static async findByCategory(category) {
         const [rows] = await db.execute(
-            'SELECT * FROM available_lab_tests WHERE test_category = ?',
+            'SELECT * FROM available_lab_tests WHERE TestCategory = ?',
             [category]
         );
         return rows.map(row => new AvailableLabTests(row));
     }
 
     static async update(id, testData) {
-        const { test_name, test_category, description, price, normal_range, unit } = testData;
+        const { test_name, TestCategory, UnitOfMeasure, NormalRange_Male, NormalRange_Female, price } = testData;
         const [result] = await db.execute(
             `UPDATE available_lab_tests SET 
-       test_name = ?, test_category = ?, description = ?, price = ?, normal_range = ?, unit = ? 
+       test_name = ?, TestCategory = ?, UnitOfMeasure = ?, NormalRange_Male = ?, NormalRange_Female = ?, price = ? 
        WHERE test_id = ?`,
-            [test_name, test_category, description, price, normal_range, unit, id]
+            [test_name, TestCategory, UnitOfMeasure, NormalRange_Male, NormalRange_Female, price, id]
         );
         return result.affectedRows;
     }

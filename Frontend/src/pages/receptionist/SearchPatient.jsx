@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search as SearchIcon, UserPlus, Calendar, Users, Eye, Phone, CreditCard, User } from 'lucide-react';
 import Card from '../../components/common/Card';
 import SearchBar from '../../components/common/SearchBar';
@@ -10,6 +11,8 @@ import { getFullName, formatPhoneNumber } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 export default function SearchPatient() {
+    const navigate = useNavigate();
+    const location = useLocation();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -98,15 +101,15 @@ export default function SearchPatient() {
                         </div>
                     </div>
                     <div className="flex justify-end gap-1 mt-2 pt-2 border-t border-gray-100">
-                        <Button size="xs" variant="ghost" className="text-blue-600 hover:bg-blue-50" title="View Profile">
+                        <Button size="xs" variant="ghost" className="text-blue-600 hover:bg-blue-50" title="View Profile" onClick={() => handleAction('view', row)}>
                             <Eye size={14} />
                             <span className="ml-1">View</span>
                         </Button>
-                        <Button size="xs" variant="ghost" className="text-gray-600 hover:bg-gray-100" title="Schedule">
+                        <Button size="xs" variant="ghost" className="text-gray-600 hover:bg-gray-100" title="Schedule" onClick={() => handleAction('schedule', row)}>
                             <Calendar size={14} />
                             <span className="ml-1">Schedule</span>
                         </Button>
-                        <Button size="xs" variant="ghost" className="text-gray-600 hover:bg-gray-100" title="Add to Queue">
+                        <Button size="xs" variant="ghost" className="text-gray-600 hover:bg-gray-100" title="Add to Queue" onClick={() => handleAction('queue', row)}>
                             <Users size={14} />
                             <span className="ml-1">Queue</span>
                         </Button>
@@ -115,6 +118,27 @@ export default function SearchPatient() {
             ),
         },
     ];
+
+    const handleAction = (action, row) => {
+        if (!row.card?.CardNumber) {
+            toast.error('Patient has no active card');
+            return;
+        }
+
+        switch (action) {
+            case 'view':
+                navigate('/receptionist/view-cards', { state: { cardNumber: row.card.CardNumber } });
+                break;
+            case 'schedule':
+                navigate('/receptionist/appointments', { state: { cardId: row.card.card_id } });
+                break;
+            case 'queue':
+                navigate('/receptionist/manage-queue', { state: { cardId: row.card.card_id } });
+                break;
+            default:
+                break;
+        }
+    };
 
     // Desktop columns
     const desktopColumns = [
@@ -156,11 +180,10 @@ export default function SearchPatient() {
             header: 'Sex',
             render: (row) => (
                 <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${
-                        row.Sex === 'M'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-pink-100 text-pink-800'
-                    }`}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${row.Sex === 'M'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-pink-100 text-pink-800'
+                        }`}
                 >
                     {row.Sex}
                 </span>
@@ -175,6 +198,7 @@ export default function SearchPatient() {
                         variant="ghost"
                         className="text-blue-600 hover:bg-blue-50"
                         title="View Profile"
+                        onClick={() => handleAction('view', row)}
                     >
                         <Eye size={14} />
                     </Button>
@@ -183,6 +207,7 @@ export default function SearchPatient() {
                         variant="ghost"
                         className="text-gray-600 hover:bg-gray-100"
                         title="Schedule"
+                        onClick={() => handleAction('schedule', row)}
                     >
                         <Calendar size={14} />
                     </Button>
@@ -191,6 +216,7 @@ export default function SearchPatient() {
                         variant="ghost"
                         className="text-gray-600 hover:bg-gray-100"
                         title="Add to Queue"
+                        onClick={() => handleAction('queue', row)}
                     >
                         <Users size={14} />
                     </Button>
@@ -214,7 +240,7 @@ export default function SearchPatient() {
                             Manage and search patient records efficiently
                         </p>
                     </div>
-                   
+
                 </div>
 
                 {/* Search Section */}

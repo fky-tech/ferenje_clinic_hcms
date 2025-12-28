@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
+import EthiopianDatePicker from '../../components/common/EthiopianDatePicker';
+
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -13,6 +16,7 @@ import { formatDateTime, formatForAPI } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 export default function Appointments() {
+  const location = useLocation();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addNotification } = useNotifications();
@@ -35,12 +39,18 @@ export default function Appointments() {
   useEffect(() => {
     fetchAppointments();
     fetchPatientsAndDoctors();
-  }, []);
+
+    // Check if cardId passed from search
+    if (location.state?.cardId) {
+      setFormData(prev => ({ ...prev, card_id: location.state.cardId }));
+      setIsModalOpen(true);
+    }
+  }, [location.state]);
 
   const fetchAppointments = async () => {
     try {
       const response = await api.get(API_ROUTES.APPOINTMENTS);
-      setAppointments(response.data);
+      setAppointments(response.data.filter(a => a.status !== 'completed'));
     } catch (error) {
       console.error('Error fetching appointments:', error);
       // toast.error('Failed to load appointments');
@@ -70,7 +80,7 @@ export default function Appointments() {
     setFormData({
       card_id: '',
       doctor_id: '',
-      appointment_date: '',
+      appointment_date: new Date().toISOString().split('T')[0],
       appointment_time: '',
       reason: '',
       status: 'scheduled'
@@ -111,7 +121,7 @@ export default function Appointments() {
       } else {
         await api.post(API_ROUTES.APPOINTMENTS, payload);
         toast.success('Appointment scheduled successfully');
-        addNotification(`New appointment scheduled for Dr. ${doctors.find(d => d.doctor_id == formData.doctor_id)?.last_name || 'Doctor'}`, 'success');
+        addNotification(`New appointment scheduled for Dr. ${doctors.find(d => d.doctor_id == formData.doctor_id)?.last_name || 'Doctor'}`, 'success', ['receptionist', 'doctor', 'admin']);
       }
 
       setIsModalOpen(false);
@@ -208,12 +218,10 @@ export default function Appointments() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Input
+            <EthiopianDatePicker
               label="Date"
-              type="date"
-              name="appointment_date"
               value={formData.appointment_date}
-              onChange={handleChange}
+              onChange={(e) => setFormData(prev => ({ ...prev, appointment_date: e.target.value }))}
               required
             />
             <Input
@@ -235,7 +243,7 @@ export default function Appointments() {
               className="input-field"
             >
               <option value="scheduled">Scheduled</option>
-              <option value="completed">Completed</option>
+              {/* <option value="completed">Completed</option> */}
               <option value="cancelled">Cancelled</option>
               <option value="no-show">No Show</option>
             </select>

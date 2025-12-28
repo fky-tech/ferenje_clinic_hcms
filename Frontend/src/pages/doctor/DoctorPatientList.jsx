@@ -8,6 +8,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
 import { useNavigate } from 'react-router-dom';
+import { getStoredUser } from '../../utils/helpers';
 
 export default function DoctorPatientList() {
     const [cards, setCards] = useState([]);
@@ -34,7 +35,13 @@ export default function DoctorPatientList() {
         navigate(`/doctor/patient/${card.card_id}`);
     };
 
+    const doctorId = getStoredUser()?.person_id;
+
     const filteredCards = cards.filter(card => {
+        const matchesDoctor = card.doctor_id == doctorId;
+        const isActive = card.status === 'Active';
+        if (!matchesDoctor || !isActive) return false;
+
         const searchLower = searchTerm.toLowerCase();
         return (
             card.CardNumber?.toLowerCase().includes(searchLower) ||

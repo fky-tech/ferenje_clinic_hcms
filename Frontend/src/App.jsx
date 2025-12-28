@@ -25,6 +25,7 @@ import ManageDoctors from './pages/admin/ManageDoctors';
 import ManageReceptionists from './pages/admin/ManageReceptionists';
 import ViewPatients from './pages/admin/Patients';
 import Reports from './pages/admin/Reports';
+import AdminLabRequests from './pages/admin/LabRequests';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles }) {
@@ -131,6 +132,7 @@ function App() {
                     <Route path="receptionists" element={<ManageReceptionists />} />
                     <Route path="patients" element={<ViewPatients />} />
                     <Route path="reports" element={<Reports />} />
+                    <Route path="lab-requests" element={<AdminLabRequests />} />
                 </Route>
 
                 {/* Root Redirect */}

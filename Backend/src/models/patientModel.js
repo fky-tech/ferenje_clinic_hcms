@@ -3,6 +3,7 @@ import db from '../config/db.js';
 class Patient {
     constructor(data = {}) {
         this.patient_id = data.patient_id || null;
+        this.doctor_id = data.doctor_id || null;
         this.FirstName = data.FirstName || null;
         this.Father_Name = data.Father_Name || null;
         this.GrandFather_Name = data.GrandFather_Name || null;
@@ -26,14 +27,14 @@ class Patient {
 
     static async create(patientData) {
         const {
-            patient_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth,
+            patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth,
             Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered
         } = patientData;
 
         const [result] = await db.execute(
-            `INSERT INTO patient (patient_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [patient_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered]
+            `INSERT INTO patient (patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered]
         );
         return patient_id;
     }
@@ -53,15 +54,15 @@ class Patient {
 
     static async update(id, patientData) {
         const {
-            FirstName, Father_Name, GrandFather_Name, DateOfBirth,
+            doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth,
             Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered
         } = patientData;
 
         const [result] = await db.execute(
-            `UPDATE patient SET FirstName = ?, Father_Name = ?, GrandFather_Name = ?, DateOfBirth = ?, 
+            `UPDATE patient SET doctor_id = ?, FirstName = ?, Father_Name = ?, GrandFather_Name = ?, DateOfBirth = ?, 
        Age = ?, Sex = ?, Region = ?, Wereda = ?, HouseNo = ?, PhoneNo = ?, date_registered = ? 
        WHERE patient_id = ?`,
-            [FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, id]
+            [doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, id]
         );
         return result.affectedRows;
     }

@@ -13,19 +13,17 @@ export function NotificationProvider({ children }) {
         localStorage.setItem('notifications', JSON.stringify(notifications));
     }, [notifications]);
 
-    const addNotification = (text, type = 'info') => {
+    const addNotification = (text, type = 'info', targetRoles = []) => {
         const newNotif = {
             id: Date.now(),
             text,
-            time: 'Just now', // Ideally use timestamp and format relative time in display
+            time: 'Just now',
             timestamp: new Date().toISOString(),
             type,
+            targetRoles, // Array of roles that should see this: ['doctor', 'receptionist', etc]
             read: false
         };
         setNotifications(prev => [newNotif, ...prev]);
-
-        // Also show a toast?
-        // toast(text, { icon: '🔔' });
     };
 
     const markAsRead = (id) => {

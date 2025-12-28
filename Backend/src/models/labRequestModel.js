@@ -3,19 +3,20 @@ import db from '../config/db.js';
 class LabRequest {
     constructor(data = {}) {
         this.request_id = data.request_id || null;
-        this.visit_id = data.visit_id || null;
-        this.test_id = data.test_id || null;
+        this.VisitRecordID = data.VisitRecordID || data.visit_id || null;
         this.RequestDate = data.RequestDate || null;
         this.LabStatus = data.LabStatus || 'pending';
         // From JOIN
         this.test_name = data.test_name || null;
         this.FirstName = data.FirstName || null;
         this.Father_Name = data.Father_Name || null;
-        this.doctor_first_name = data.doctor_first_name || null;
+        this.Sex = data.Sex || null;
+        this.Age = data.Age || null;
         this.doctor_first_name = data.doctor_first_name || null;
         this.doctor_last_name = data.doctor_last_name || null;
         this.CardNumber = data.CardNumber || null;
         this.card_id = data.card_id || null;
+        this.payment_status = data.payment_status || null;
     }
 
     async save() {
@@ -41,7 +42,7 @@ class LabRequest {
         const [rows] = await db.execute(`
             SELECT DISTINCT lr.request_id, 
                    lr.VisitRecordID, lr.RequestDate, lr.LabStatus,
-                   p.FirstName, p.Father_Name,
+                   p.FirstName, p.Father_Name, p.Sex, p.Age,
                    c.CardNumber, c.card_id,
                    per.first_name as doctor_first_name, per.last_name as doctor_last_name
             FROM lab_request lr
@@ -74,10 +75,9 @@ class LabRequest {
 
     static async findByVisitId(visitId) {
         const [rows] = await db.execute(`
-            SELECT lr.*, alt.test_name
+            SELECT lr.*
             FROM lab_request lr
-            JOIN available_lab_tests alt ON lr.test_id = alt.test_id
-            WHERE lr.visit_id = ?
+            WHERE lr.VisitRecordID = ?
         `, [visitId]);
         return rows.map(row => new LabRequest(row));
     }
@@ -135,8 +135,8 @@ class LabRequest {
     static async findTodaysRequests() {
         const today = new Date().toISOString().slice(0, 10);
         const [rows] = await db.execute(`
-            SELECT lr.*,
-                   p.FirstName, p.Father_Name,
+            SELECT DISTINCT lr.*,
+                   p.FirstName, p.Father_Name, p.Sex, p.Age,
                    c.CardNumber, c.card_id,
                    per.first_name as doctor_first_name, per.last_name as doctor_last_name
             FROM lab_request lr
@@ -153,21 +153,27 @@ class LabRequest {
 
     static async findAllRequests(date = null) {
         let query = `
-            SELECT lr.*,
-                   p.FirstName, p.Father_Name,
+            SELECT DISTINCT lr.*,
+                   p.FirstName, p.Father_Name, p.Sex, p.Age,
                    c.CardNumber, c.card_id,
-                   per.first_name as doctor_first_name, per.last_name as doctor_last_name
+                   per.first_name as doctor_first_name, per.last_name as doctor_last_name,
+                   (SELECT payment_status FROM lab_request_tests WHERE request_id = lr.request_id LIMIT 1) as payment_status,
+                   (SELECT SUM(alt.price) 
+                    FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id) as total_price
             FROM lab_request lr
             JOIN patientvisitrecord pvr ON lr.VisitRecordID = pvr.VisitRecordID
             JOIN card c ON pvr.card_id = c.card_id
             JOIN patient p ON c.patient_id = p.patient_id
             LEFT JOIN doctor d ON pvr.doctor_id = d.doctor_id
             LEFT JOIN person per ON d.doctor_id = per.person_id
+            WHERE 1=1
         `;
 
         const params = [];
         if (date) {
-            query += ' WHERE DATE(lr.RequestDate) = ?';
+            query += ' AND DATE(lr.RequestDate) = ?';
             params.push(date);
         }
 

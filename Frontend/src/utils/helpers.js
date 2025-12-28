@@ -1,11 +1,17 @@
 import { format, parseISO, isToday, differenceInDays, addYears } from 'date-fns';
 import { DATE_FORMATS } from './constants';
+import { formatToEthiopian } from './dateUtils';
+
 
 // Date Formatting
-export const formatDate = (date, formatStr = DATE_FORMATS.DISPLAY) => {
+export const formatDate = (date, formatStr = DATE_FORMATS.DISPLAY, isUI = true) => {
     if (!date) return '';
     try {
         const dateObj = typeof date === 'string' ? parseISO(date) : date;
+        // If it's for UI, default to Ethiopian
+        if (isUI) {
+            return formatToEthiopian(dateObj);
+        }
         return format(dateObj, formatStr);
     } catch (error) {
         console.error('Date formatting error:', error);
@@ -18,11 +24,11 @@ export const formatDateTime = (date) => {
 };
 
 export const formatForAPI = (date) => {
-    return formatDate(date, DATE_FORMATS.API);
+    return formatDate(date, DATE_FORMATS.API, false);
 };
 
 export const formatDateTimeForAPI = (date) => {
-    return formatDate(date, DATE_FORMATS.API_WITH_TIME);
+    return formatDate(date, DATE_FORMATS.API_WITH_TIME, false);
 };
 
 export const isDateToday = (date) => {
@@ -48,10 +54,7 @@ export const generatePatientId = () => {
 };
 
 export const generateCardNumber = () => {
-    const prefix = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit number prefix
-    const timestamp = Date.now().toString().slice(-8);
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `${prefix}${timestamp}${random}`;
+    return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 // Card Expiry

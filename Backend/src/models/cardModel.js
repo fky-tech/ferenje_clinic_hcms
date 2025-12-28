@@ -14,6 +14,7 @@ class Card {
         this.PhoneNo = data.PhoneNo || null;
         this.Sex = data.Sex || null;
         this.Age = data.Age || null;
+        this.doctor_id = data.doctor_id || null;
     }
 
     async save() {
@@ -37,7 +38,7 @@ class Card {
 
     static async findAll() {
         const [rows] = await db.execute(`
-      SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age
+      SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age, p.doctor_id
       FROM card c
       JOIN patient p ON c.patient_id = p.patient_id
     `);
@@ -46,7 +47,7 @@ class Card {
 
     static async findById(id) {
         const [rows] = await db.execute(`
-      SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age
+      SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age, p.doctor_id
       FROM card c
       JOIN patient p ON c.patient_id = p.patient_id
       WHERE c.card_id = ?
@@ -56,7 +57,7 @@ class Card {
 
     static async findByCardNumber(cardNumber) {
         const [rows] = await db.execute(`
-      SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age
+      SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age, p.doctor_id
       FROM card c
       JOIN patient p ON c.patient_id = p.patient_id
       WHERE c.CardNumber = ?
@@ -71,7 +72,7 @@ class Card {
         );
         return rows.map(row => new Card(row));
     }
-    
+
 
     // static async update(id, cardData) {
     //     const { patient_id, CardNumber, status, issue_date, expire_date } = cardData;
@@ -143,7 +144,7 @@ class Card {
     static async search(query) {
         const searchTerm = `%${query}%`;
         const [rows] = await db.execute(`
-            SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age
+            SELECT c.*, p.FirstName, p.Father_Name, p.PhoneNo, p.Sex, p.Age, p.doctor_id
             FROM card c
             JOIN patient p ON c.patient_id = p.patient_id
             WHERE c.CardNumber LIKE ? 

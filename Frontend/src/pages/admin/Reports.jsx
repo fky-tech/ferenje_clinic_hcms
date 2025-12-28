@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Download, Calendar, FileText, CreditCard, Activity, Users } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import EthiopianDatePicker from '../../components/common/EthiopianDatePicker';
+
 
 export default function Reports() {
     const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -87,13 +89,11 @@ export default function Reports() {
                     <p className="text-gray-500 mt-1">Export clinic data for specific dates</p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                    <Calendar className="w-5 h-5 text-gray-400 ml-2" />
-                    <input
-                        type="date"
+                <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200 min-w-[300px]">
+                    <EthiopianDatePicker
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
-                        className="outline-none text-gray-700 font-medium bg-transparent"
+                        required
                     />
                 </div>
             </div>
@@ -132,8 +132,8 @@ export default function Reports() {
                     <div>
                         <h3 className="text-lg font-semibold text-blue-900 mb-1">Automated Daily Reports</h3>
                         <p className="text-blue-700 text-sm">
-                            The system automatically generates a consolidated JSON report every night at 11:59 PM.
-                            These files are saved securely on the server in the <code>/reports</code> directory
+                            The system automatically generates consolidated Excel reports (Summary, Financial, Patient Visits, Lab Activity) every night at 11:59 PM.
+                            These files are saved securely on the server in date-specific folders within the <code>/reports</code> directory
                             for archival and audit purposes.
                         </p>
                     </div>

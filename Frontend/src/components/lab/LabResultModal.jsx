@@ -4,12 +4,14 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { formatDateTime } from '../../utils/helpers';
 
 export default function LabResultModal({ isOpen, onClose, request, onSuccess }) {
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const { addNotification } = useNotifications();
 
     useEffect(() => {
         if (isOpen && request) {
@@ -83,6 +85,7 @@ export default function LabResultModal({ isOpen, onClose, request, onSuccess }) 
             });
 
             toast.success("Results saved successfully");
+            addNotification(`Lab results ready for ${request.FirstName} ${request.Father_Name}`, 'success', ['doctor', 'lab_doctor', 'admin']);
             onSuccess?.();
             onClose();
         } catch (error) {
@@ -125,13 +128,18 @@ export default function LabResultModal({ isOpen, onClose, request, onSuccess }) 
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Result Value / Reading</label>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-sm font-medium text-gray-700">Result Value / Reading</label>
+                                        <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">
+                                            Normal: {request?.Sex === 'Male' ? test.NormalRange_Male : test.NormalRange_Female} {test.UnitOfMeasure}
+                                        </span>
+                                    </div>
                                     <input
                                         type="text"
                                         value={test.result_value}
                                         onChange={(e) => handleResultChange(index, 'result_value', e.target.value)}
                                         className="input-field"
-                                        placeholder="Enter result..."
+                                        placeholder={`Enter result in ${test.UnitOfMeasure || 'units'}...`}
                                     />
                                 </div>
 

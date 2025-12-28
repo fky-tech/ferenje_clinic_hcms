@@ -7,14 +7,16 @@ class LabRequestTest {
         this.test_id = data.test_id || null;
         // From JOIN
         this.test_name = data.test_name || null;
-        this.price = data.price || null; // For payment
+        this.price = data.price || null;
+        this.UnitOfMeasure = data.UnitOfMeasure || null;
+        this.NormalRange_Male = data.NormalRange_Male || null;
+        this.NormalRange_Female = data.NormalRange_Female || null;
         this.payment_status = data.payment_status || 'unpaid';
     }
 
     async save() {
         if (this.id) {
-            // Usually not updated, but for consistency
-            return 0; // No update logic defined for association table yet
+            return 0;
         } else {
             const insertId = await LabRequestTest.create(this);
             this.id = insertId;
@@ -32,9 +34,8 @@ class LabRequestTest {
     }
 
     static async findByRequestId(requestId) {
-        // detailed view with test info
         const [rows] = await db.execute(`
-            SELECT lrt.*, alt.test_name, alt.price, lrt.payment_status
+            SELECT lrt.*, alt.test_name, alt.price, alt.UnitOfMeasure, alt.NormalRange_Male, alt.NormalRange_Female, lrt.payment_status
             FROM lab_request_tests lrt
             JOIN available_lab_tests alt ON lrt.test_id = alt.test_id
             WHERE lrt.request_id = ?

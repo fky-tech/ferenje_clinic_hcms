@@ -21,10 +21,7 @@ export default function LabRequestModal({ isOpen, onClose, cardId, visitId, doct
 
     const fetchTests = async () => {
         try {
-            // Need an endpoint for available lab tests. 
-            // Assuming /lab-tests or similar.
-            // I'll assume /lab-tests exists based on file list (availableLabTestsRoutes.js)
-            const response = await api.get('/available-lab-tests');
+            const response = await api.get(API_ROUTES.AVAILABLE_LAB_TESTS);
             setAvailableTests(response.data);
         } catch (error) {
             console.error('Error fetching lab tests:', error);
@@ -105,20 +102,49 @@ export default function LabRequestModal({ isOpen, onClose, cardId, visitId, doct
         <Modal isOpen={isOpen} onClose={onClose} title="Order Lab Tests">
             {loading ? <LoadingSpinner /> : (
                 <div className="space-y-4">
-                    <div className="max-h-60 overflow-y-auto border rounded-md p-2">
-                        {availableTests.length === 0 ? <p>No tests available</p> : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {availableTests.map(test => (
-                                    <label key={test.test_id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedTests.includes(test.test_id)}
-                                            onChange={() => toggleTest(test.test_id)}
-                                            className="rounded text-primary-600 focus:ring-primary-500"
-                                        />
-                                        <span className="text-sm font-medium">{test.test_name}</span>
-                                        <span className="text-xs text-gray-500">({test.price} ETB)</span>
-                                    </label>
+                    <div className="max-h-96 overflow-y-auto border rounded-xl p-3 bg-gray-50/30">
+                        {availableTests.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">No tests available</div>
+                        ) : (
+                            <div className="space-y-6">
+                                {Object.entries(
+                                    availableTests.reduce((acc, test) => {
+                                        const cat = test.TestCategory || 'General';
+                                        if (!acc[cat]) acc[cat] = [];
+                                        acc[cat].push(test);
+                                        return acc;
+                                    }, {})
+                                ).map(([category, tests]) => (
+                                    <div key={category} className="space-y-2">
+                                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1">
+                                            {category}
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            {tests.map(test => (
+                                                <label
+                                                    key={test.test_id}
+                                                    className={`flex items-center space-x-3 p-3 rounded-lg border transition-all cursor-pointer ${selectedTests.includes(test.test_id)
+                                                        ? 'border-blue-500 bg-blue-50/50 shadow-sm'
+                                                        : 'border-transparent bg-white hover:border-gray-200'
+                                                        }`}
+                                                >
+                                                    <div className="relative flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedTests.includes(test.test_id)}
+                                                            onChange={() => toggleTest(test.test_id)}
+                                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold text-gray-800 truncate">
+                                                            {test.test_name}
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         )}

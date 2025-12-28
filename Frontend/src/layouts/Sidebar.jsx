@@ -43,7 +43,8 @@ const adminMenuItems = [
     { path: '/admin/doctors', icon: UserPlus, label: 'Manage Doctors' },
     { path: '/admin/receptionists', icon: Users, label: 'Manage Receptionists' },
     { path: '/admin/patients', icon: Search, label: 'View Patients' },
-    { path: '/admin/reports', icon: FlaskConical, label: 'Reports' }, // Using FlaskConical as placeholder or FileText
+    { path: '/admin/lab-requests', icon: FlaskConical, label: 'Lab Reports' },
+    { path: '/admin/reports', icon: FileText, label: 'Daily Reports' }, // Changed placeholder icon and label for clarity
 ];
 
 export default function Sidebar() {
@@ -83,18 +84,18 @@ export default function Sidebar() {
             <div className={`h-20 flex items-center border-b border-gray-200 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-6'}`}>
                 {!isCollapsed && (
                     <div className="flex items-center gap-1">
-                           <div className="w-14 h-14  rounded-full overflow-hidden">
+                        <div className="w-14 h-14  rounded-full overflow-hidden">
                             <img
-                            src="/images/logo.png"
-                            alt="Ferenjie Logo"
-                            className="w-full h-full object-cover"
+                                src="/images/logo.png"
+                                alt="Ferenjie Logo"
+                                className="w-full h-full object-cover"
                             />
-                            </div>
-                    <div className="overflow-hidden whitespace-nowrap">
-                       
-                        <h1 className="text-lg font-bold text-primary-600 truncate">Ferenje Clinic</h1>
-                        {/* <p className="text-xs text-gray-500 truncate">{portalName}</p> */}
-                    </div>
+                        </div>
+                        <div className="overflow-hidden whitespace-nowrap">
+
+                            <h1 className="text-lg font-bold text-primary-600 truncate">Ferenje Clinic</h1>
+                            {/* <p className="text-xs text-gray-500 truncate">{portalName}</p> */}
+                        </div>
                     </div>
                 )}
                 <button

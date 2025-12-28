@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import Input from '../common/Input';
+import EthiopianDatePicker from '../common/EthiopianDatePicker';
 import api from '../../api/axios';
-import { API_ROUTES } from '../../utils/constants';
+import { API_ROUTES, APPOINTMENT_STATUS } from '../../utils/constants';
 import toast from 'react-hot-toast';
 
 export default function AddAppointmentModal({ isOpen, onClose, cardId, doctorId, onSuccess }) {
     const [formData, setFormData] = useState({
         appointment_date: '',
         appointment_time: '',
-        status: 'scheduled'
+        status: APPOINTMENT_STATUS.SCHEDULED
     });
     const [loading, setLoading] = useState(false);
 
@@ -28,7 +29,7 @@ export default function AddAppointmentModal({ isOpen, onClose, cardId, doctorId,
                 doctor_id: doctorId,
                 appointment_start_time: dateTime,
                 appointment_end_time: dateTime, // Default 1 hr or same
-                status: 'scheduled'
+                status: APPOINTMENT_STATUS.SCHEDULED
             });
             toast.success("Follow-up appointment scheduled");
             onSuccess?.();
@@ -44,12 +45,11 @@ export default function AddAppointmentModal({ isOpen, onClose, cardId, doctorId,
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Schedule Follow-up Appointment">
             <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
+                <EthiopianDatePicker
                     label="Date"
                     name="appointment_date"
-                    type="date"
                     value={formData.appointment_date}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData(prev => ({ ...prev, appointment_date: e.target.value }))}
                     required
                 />
                 <Input

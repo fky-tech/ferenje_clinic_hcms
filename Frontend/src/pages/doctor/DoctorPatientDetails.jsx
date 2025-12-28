@@ -5,6 +5,7 @@ import { ArrowLeft, Activity, FileText, FlaskConical, Save, Plus, ChevronDown, C
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import EthiopianDatePicker from '../../components/common/EthiopianDatePicker';
 import VitalsForm from '../../components/doctor/VitalsForm';
 import PhysicalExamForm from '../../components/doctor/PhysicalExamForm';
 import ClinicalNotesForm from '../../components/doctor/ClinicalNotesForm';
@@ -17,6 +18,7 @@ import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
 import { getStoredUser, formatDateTime } from '../../utils/helpers';
 import toast from 'react-hot-toast';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export default function DoctorPatientDetails() {
     const { cardId } = useParams();
@@ -24,6 +26,8 @@ export default function DoctorPatientDetails() {
     const user = getStoredUser();
     const [card, setCard] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const { addNotification } = useNotifications();
     const [activeTab, setActiveTab] = useState('clinical');
     const [historyDateFilter, setHistoryDateFilter] = useState('');
 
@@ -130,12 +134,12 @@ export default function DoctorPatientDetails() {
                 visit_time: formattedTime,
                 visit_type: 'OPD',
                 // Using PascalCase for new fields to match model expectations
-                ChiefComplaint: clinicalNotes.ChiefComplaint,
-                HPI: clinicalNotes.HPI,
+                ChiefComplaint: clinicalNotes.ChiefComplaint || 'Follow-up', // Default to 'Follow-up' if empty? Or just allow null if DB allows.
+                HPI: clinicalNotes.HPI || '',
                 UrgentAttention: clinicalNotes.UrgentAttention ? 1 : 0,
-                FinalDiagnosis: investigation.FinalDiagnosis,
-                Advice: investigation.Advice,
-                Treatment: investigation.Treatment
+                FinalDiagnosis: investigation.FinalDiagnosis || '',
+                Advice: investigation.Advice || '',
+                Treatment: investigation.Treatment || ''
             };
 
             if (currentVisitId) {
@@ -168,6 +172,44 @@ export default function DoctorPatientDetails() {
             }
 
             toast.success("Visit saved successfully", { id: toastId });
+
+            // Post-consultation workflow: Complete appointment and Remove from queue
+            try {
+                // 1. Handle Appointment
+                const apptsRes = await api.get(API_ROUTES.APPOINTMENTS);
+                const activeAppt = apptsRes.data.find(a =>
+                    a.card_id == cardId &&
+                    a.doctor_id == (user.person_id || user.id) &&
+                    a.status === 'scheduled'
+                );
+                if (activeAppt) {
+                    await api.put(`${API_ROUTES.APPOINTMENTS}/${activeAppt.appointment_id}`, {
+                        ...activeAppt,
+                        status: 'completed'
+                    });
+                }
+
+                // 2. Handle Queue
+                const queueRes = await api.get(API_ROUTES.QUEUES);
+                const activeQueue = queueRes.data.find(q =>
+                    q.card_id == cardId &&
+                    q.doctor_id == (user.person_id || user.id) &&
+                    q.status !== 'completed'
+                );
+                if (activeQueue) {
+                    // Update to completed or delete? User said "remove from... queue table". 
+                    // Usually safer to set status unless explicitly told to HARD delete.
+                    // But "remove from... queue table" often implies delete.
+                    // However, I'll update it to 'completed' first as it's more standard for audit.
+                    // Wait, requirement says "(and queue table)".
+                    // I will DELETE it from the queue table as requested.
+                    await api.delete(`${API_ROUTES.QUEUES}/${activeQueue.queue_id}`);
+                }
+            } catch (workflowError) {
+                console.error("Workflow update error:", workflowError);
+                // Don't block the main success toast as the visit itself was saved
+            }
+
             fetchPatientData();
         } catch (error) {
             console.error(error);
@@ -297,15 +339,11 @@ export default function DoctorPatientDetails() {
 
                     {activeTab === 'history' && (
                         <div className="space-y-4">
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Filter by Date
-                                </label>
-                                <input
-                                    type="date"
+                            <div className="mb-4 w-64">
+                                <EthiopianDatePicker
+                                    label="Filter by Date"
                                     value={historyDateFilter}
                                     onChange={(e) => setHistoryDateFilter(e.target.value)}
-                                    className="px-3 py-2 border rounded-md"
                                 />
                             </div>
 

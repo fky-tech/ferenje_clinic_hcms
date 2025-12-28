@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
-  Users, Calendar, Clock, DollarSign, UserCheck, 
-  TrendingUp, Search, UserPlus, CreditCard, 
-  ChevronRight, MoreHorizontal, ArrowUpRight
+import {
+    Users, Calendar, Clock, DollarSign, UserCheck,
+    TrendingUp, Search, UserPlus, CreditCard,
+    ChevronRight, MoreHorizontal, ArrowUpRight
 } from 'lucide-react';
 
 
@@ -61,7 +61,7 @@ export default function Dashboard() {
                 appointmentsToday,
                 queueCount: queueToday.length,
                 revenueToday,
-                totalPatientsServed: patients.data.length,
+                totalPatientsServed: patientsToday,
                 avgWaitTime: 15, // Placeholder - would calculate from actual data
             });
 
@@ -105,7 +105,7 @@ export default function Dashboard() {
             trendUp: true,
             color: 'text-blue-900',
             bg: 'bg-blue-50',
-            
+
         },
         {
             title: 'Appointments',
@@ -135,7 +135,7 @@ export default function Dashboard() {
             bg: 'bg-violet-50',
         },
         {
-            title: 'Total Served',
+            title: 'Today Served',
             value: stats.totalPatientsServed,
             icon: UserCheck,
             color: 'text-indigo-600',
@@ -150,36 +150,36 @@ export default function Dashboard() {
         },
     ];
 
-  const quickActions = [
-    { 
-        label: 'Register', 
-        icon: UserPlus, 
-        to: '/receptionist/register-patient',  // Added leading slash
-        variant: 'primary', 
-        desc: 'Add new patient' 
-    },
-    { 
-        label: 'Schedule', 
-        icon: Calendar, 
-        to: '/receptionist/appointments',  // Added leading slash and receptionist prefix
-        variant: 'secondary', 
-        desc: 'Book visit' 
-    },
-    { 
-        label: 'Search', 
-        icon: Search, 
-        to: '/receptionist/search-patient',  // Added leading slash and receptionist prefix
-        variant: 'secondary', 
-        desc: 'Find records' 
-    },
-    { 
-        label: 'Cards', 
-        icon: CreditCard, 
-        to: '/receptionist/view-cards',  // Added leading slash and receptionist prefix
-        variant: 'secondary', 
-        desc: 'Billing info' 
-    },
-];
+    const quickActions = [
+        {
+            label: 'Register',
+            icon: UserPlus,
+            to: '/receptionist/register-patient',  // Added leading slash
+            variant: 'primary',
+            desc: 'Add new patient'
+        },
+        {
+            label: 'Schedule',
+            icon: Calendar,
+            to: '/receptionist/appointments',  // Added leading slash and receptionist prefix
+            variant: 'secondary',
+            desc: 'Book visit'
+        },
+        {
+            label: 'Search',
+            icon: Search,
+            to: '/receptionist/search-patient',  // Added leading slash and receptionist prefix
+            variant: 'secondary',
+            desc: 'Find records'
+        },
+        {
+            label: 'Cards',
+            icon: CreditCard,
+            to: '/receptionist/view-cards',  // Added leading slash and receptionist prefix
+            variant: 'secondary',
+            desc: 'Billing info'
+        },
+    ];
 
     // -------------------------------------------------------------------------
     //                       RENDER
@@ -229,8 +229,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Quick Actions - Scaled Down */}
                 <div className="lg:col-span-2">
-                    <Card 
-                        title="Quick Actions" 
+                    <Card
+                        title="Quick Actions"
                         className="h-full"
                         action={<button className="text-gray-400 hover:text-gray-600"><MoreHorizontal size={16} /></button>}
                     >
@@ -250,7 +250,7 @@ export default function Dashboard() {
                                 );
                             })}
                         </div>
-                        
+
                         {/* Mini Insight Section */}
                         <div className="mt-4 pt-4 border-t border-gray-50">
                             <div className="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg border border-indigo-100/50">
@@ -279,11 +279,10 @@ export default function Dashboard() {
                             <div className="space-y-0">
                                 {recentActivity.map((activity, index) => (
                                     <div key={index} className="group flex items-start gap-3 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors cursor-pointer">
-                                        <div className={`mt-0.5 w-7 h-7 shrink-0 rounded-full flex items-center justify-center border ${
-                                            activity.type === 'registration' 
-                                                ? 'bg-blue-50 border-blue-100 text-blue-600' 
-                                                : 'bg-emerald-50 border-emerald-100 text-emerald-600'
-                                        }`}>
+                                        <div className={`mt-0.5 w-7 h-7 shrink-0 rounded-full flex items-center justify-center border ${activity.type === 'registration'
+                                            ? 'bg-blue-50 border-blue-100 text-blue-600'
+                                            : 'bg-emerald-50 border-emerald-100 text-emerald-600'
+                                            }`}>
                                             {activity.type === 'registration' ? <UserPlus size={12} /> : <DollarSign size={12} />}
                                         </div>
                                         <div className="flex-1 min-w-0">

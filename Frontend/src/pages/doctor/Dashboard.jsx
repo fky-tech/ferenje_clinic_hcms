@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Users, Calendar, Clock, FileText, Settings, 
+import {
+    Users, Calendar, Clock, FileText, Settings,
     ChevronRight, UserPlus, CheckCircle, AlertCircle,
     UserCheck, UserX, Stethoscope, Bell, MoreVertical
 } from 'lucide-react';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
-import { getStoredUser, isDateToday } from '../../utils/helpers';
+import { getStoredUser, isDateToday, formatDate, formatDateTime } from '../../utils/helpers';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function DoctorDashboard() {
@@ -21,23 +21,18 @@ export default function DoctorDashboard() {
         todayAppointments: 0,
         queueCount: 0
     });
-    
+
     const [recentActivities, setRecentActivities] = useState([]);
 
     useEffect(() => {
         const updateDateTime = () => {
             const now = new Date();
-            setCurrentTime(now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
+            setCurrentTime(now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
             }));
-            setCurrentDate(now.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            }));
+            setCurrentDate(formatDate(now));
         };
 
         updateDateTime();
@@ -51,16 +46,20 @@ export default function DoctorDashboard() {
                 ]);
 
                 const doctorId = user?.person_id || user?.id;
-                
-                const todayAppts = apptRes.data.filter(a => 
-                    a.doctor_id == doctorId && 
+
+                const todayAppts = apptRes.data.filter(a =>
+                    a.doctor_id == doctorId &&
                     isDateToday(new Date(a.appointment_start_time))
                 );
 
-                const queueCount = queueRes.data.filter(q => q.status !== 'completed').length;
+                const queueCount = queueRes.data.filter(q =>
+                    q.doctor_id == doctorId &&
+                    isDateToday(q.date) &&
+                    q.status !== 'completed'
+                ).length;
 
                 // Generate recent activities
-                const activities = generateRecentActivities(todayAppts, queueRes.data);
+                const activities = generateRecentActivities(todayAppts, queueRes.data.filter(q => q.doctor_id == doctorId));
                 setRecentActivities(activities);
 
                 setStats({
@@ -85,15 +84,15 @@ export default function DoctorDashboard() {
 
     const generateRecentActivities = (appointments, queues) => {
         const activities = [];
-        
+
         // Add appointment activities
         appointments.slice(0, 3).forEach(appt => {
             activities.push({
                 id: `appt-${appt.id}`,
                 type: 'appointment',
                 title: `Appointment with ${appt.patient_name || 'Patient'}`,
-                description: `Scheduled for ${formatTime(new Date(appt.appointment_start_time))}`,
-                time: formatTime(new Date(appt.appointment_start_time)),
+                description: `Scheduled for ${formatDateTime(appt.appointment_start_time)}`,
+                time: formatDateTime(appt.appointment_start_time),
                 status: 'scheduled',
                 icon: Calendar,
                 color: 'text-purple-600',
@@ -104,8 +103,8 @@ export default function DoctorDashboard() {
         // Add queue activities
         queues.slice(0, 3).forEach(queue => {
             let status, icon, color, bg;
-            
-            switch(queue.status) {
+
+            switch (queue.status) {
                 case 'completed':
                     status = 'completed';
                     icon = CheckCircle;
@@ -130,7 +129,7 @@ export default function DoctorDashboard() {
                 type: 'queue',
                 title: `Patient ${queue.patient_name || 'in queue'}`,
                 description: `Queue ${queue.status.replace('_', ' ')}`,
-                time: queue.updated_at ? formatTime(new Date(queue.updated_at)) : 'Just now',
+                time: queue.updated_at ? formatDateTime(queue.updated_at) : 'Just now',
                 status: status,
                 icon: icon,
                 color: color,
@@ -206,7 +205,7 @@ export default function DoctorDashboard() {
             'scheduled': { text: 'Scheduled', color: 'bg-purple-100 text-purple-800 border-purple-200' },
             'new': { text: 'New', color: 'bg-blue-100 text-blue-800 border-blue-200' }
         };
-        
+
         const { text, color } = config[status] || config.new;
         return (
             <span className={`text-xs px-2 py-0.5 rounded-full border ${color}`}>
@@ -239,28 +238,28 @@ export default function DoctorDashboard() {
 
             {/* Stats Grid - Smaller */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <GradientStatCard 
-                    title="Patients in Queue" 
-                    value={stats.queueCount} 
-                    icon={Clock} 
+                <GradientStatCard
+                    title="Patients in Queue"
+                    value={stats.queueCount}
+                    icon={Clock}
                     gradient="from-blue-500 to-blue-600"
                     hoverGradient="from-blue-600 to-blue-700"
                     onClick={() => navigate('/doctor/queue')}
                     clickable
                 />
-                <GradientStatCard 
-                    title="Today's Appointments" 
-                    value={stats.todayAppointments} 
-                    icon={Calendar} 
+                <GradientStatCard
+                    title="Today's Appointments"
+                    value={stats.todayAppointments}
+                    icon={Calendar}
                     gradient="from-purple-500 to-purple-600"
                     hoverGradient="from-purple-600 to-purple-700"
                     onClick={() => navigate('/doctor/appointments')}
                     clickable
                 />
-                <GradientStatCard 
-                    title="Total Patients Today" 
-                    value={stats.todayPatients} 
-                    icon={Users} 
+                <GradientStatCard
+                    title="Total Patients Today"
+                    value={stats.todayPatients}
+                    icon={Users}
                     gradient="from-emerald-500 to-emerald-600"
                     hoverGradient="from-emerald-600 to-emerald-700"
                 />
@@ -285,7 +284,7 @@ export default function DoctorDashboard() {
                             {recentActivities.map((activity) => {
                                 const Icon = activity.icon;
                                 return (
-                                    <div 
+                                    <div
                                         key={activity.id}
                                         className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors"
                                     >
@@ -316,7 +315,7 @@ export default function DoctorDashboard() {
                     <div className="bg-white p-4 rounded-xl shadow border border-slate-100">
                         <h2 className="text-lg font-bold text-slate-800 mb-4">Quick Actions</h2>
                         <div className="space-y-2">
-                            <QuickActionButton 
+                            <QuickActionButton
                                 icon={Clock}
                                 title="Manage Queue"
                                 description="Call next patient"
@@ -325,7 +324,7 @@ export default function DoctorDashboard() {
                                 hoverBg="hover:bg-blue-100"
                                 onClick={() => navigate('/doctor/queue')}
                             />
-                            <QuickActionButton 
+                            <QuickActionButton
                                 icon={Calendar}
                                 title="View Schedule"
                                 description="Check appointments"
@@ -334,7 +333,7 @@ export default function DoctorDashboard() {
                                 hoverBg="hover:bg-purple-100"
                                 onClick={() => navigate('/doctor/appointments')}
                             />
-                            <QuickActionButton 
+                            <QuickActionButton
                                 icon={Users}
                                 title="My Patients"
                                 description="Patient records"
@@ -343,11 +342,11 @@ export default function DoctorDashboard() {
                                 hoverBg="hover:bg-emerald-100"
                                 onClick={() => navigate('/doctor/patients')}
                             />
-                           
+
                         </div>
                     </div>
 
-                   
+
                 </div>
             </div>
         </div>
@@ -357,7 +356,7 @@ export default function DoctorDashboard() {
 // Gradient Stat Card Component - Smaller
 function GradientStatCard({ title, value, icon: Icon, gradient, hoverGradient, onClick, clickable }) {
     return (
-        <div 
+        <div
             onClick={onClick}
             className={`relative group ${clickable ? 'cursor-pointer active:scale-[0.98]' : ''}`}
         >
@@ -386,7 +385,7 @@ function GradientStatCard({ title, value, icon: Icon, gradient, hoverGradient, o
 // Quick Action Button Component - Smaller
 function QuickActionButton({ icon: Icon, title, description, color, bg, hoverBg, onClick }) {
     return (
-        <button 
+        <button
             onClick={onClick}
             className={`w-full flex items-center justify-between p-3 rounded-lg ${bg} ${hoverBg} border border-slate-100 hover:border-slate-200 transition-colors group active:scale-[0.98]`}
         >
@@ -406,9 +405,5 @@ function QuickActionButton({ icon: Icon, title, description, color, bg, hoverBg,
 
 // Helper function for time formatting
 function formatTime(date) {
-    return date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-    });
+    return formatDateTime(date);
 }

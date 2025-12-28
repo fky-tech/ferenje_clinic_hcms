@@ -47,8 +47,13 @@ export default function Labs() {
         }));
     };
 
-    // Group requests by CardNumber (Patient)
+    // Filter and group requests
     const groupedRequests = requests.reduce((acc, req) => {
+        // Only show paid and non-completed requests
+        // Note: req.payment_status might be at the test level, so if req is a joined row, check it.
+        // Assuming the API returns requests where payment_status is 'paid' or we filter here.
+        if (req.payment_status !== 'paid' || req.LabStatus === 'completed') return acc;
+
         const cardId = req.CardNumber;
         if (!acc[cardId]) {
             acc[cardId] = {
@@ -168,8 +173,8 @@ export default function Labs() {
                                                 </div>
                                                 <div className="flex items-center space-x-3">
                                                     <span className={`px-2 py-1 text-xs rounded-full ${request.LabStatus === 'completed'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-yellow-100 text-yellow-800'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-yellow-100 text-yellow-800'
                                                         }`}>
                                                         {request.LabStatus}
                                                     </span>

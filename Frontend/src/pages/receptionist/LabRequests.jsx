@@ -85,7 +85,7 @@ export default function LabRequests() {
             });
 
             toast.success('Payment processed successfully');
-            addNotification(`Lab payment received for ${selectedRequest.FirstName} ${selectedRequest.Father_Name}`, 'success');
+            addNotification(`Payment received for Lab Request #${selectedRequest.request_id}`, 'success', ['receptionist', 'lab_doctor', 'admin']);
             setIsModalOpen(false);
             // Optional: Update request status locally or refetch
             fetchLabRequests();

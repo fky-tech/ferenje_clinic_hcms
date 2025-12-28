@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNotifications } from "../../contexts/NotificationContext";
+import EthiopianDatePicker from "../../components/common/EthiopianDatePicker";
+
 import {
   UserPlus,
   CreditCard,
@@ -31,6 +33,7 @@ import {
   generateCardNumber,
   getCardExpiryDate,
   formatForAPI,
+  formatDate,
 } from "../../utils/helpers";
 import toast from "react-hot-toast";
 const CustomInput = ({
@@ -60,18 +63,16 @@ const CustomInput = ({
           value={value}
           onChange={onChange}
           autoComplete="off"
-          className={`w-full bg-gray-50 border ${
-            error
-              ? "border-red-300 focus:ring-red-200"
-              : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-          } text-gray-900 text-sm rounded-lg px-3 py-2.5 transition-all
+          className={`w-full bg-gray-50 border ${error
+            ? "border-red-300 focus:ring-red-200"
+            : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+            } text-gray-900 text-sm rounded-lg px-3 py-2.5 transition-all
                     placeholder-gray-400 focus:ring-2
                     ${icon ? "pl-9" : ""}
-                    ${
-                      props.disabled
-                        ? "opacity-60 cursor-not-allowed bg-gray-100"
-                        : "bg-white"
-                    }
+                    ${props.disabled
+              ? "opacity-60 cursor-not-allowed bg-gray-100"
+              : "bg-white"
+            }
                     ${className}`}
         />
       </div>
@@ -100,10 +101,24 @@ export default function RegisterPatient() {
     expire_date: formatForAPI(getCardExpiryDate()),
     // Payment
     amount: 100, // Default card fee
+    doctor_id: "", // Assigned Doctor
   });
+  const [doctors, setDoctors] = useState([]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { addNotification } = useNotifications();
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await api.get(API_ROUTES.DOCTORS);
+        setDoctors(response.data);
+      } catch (err) {
+        toast.error("Failed to load doctors");
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -153,6 +168,7 @@ export default function RegisterPatient() {
         HouseNo: formData.HouseNo,
         PhoneNo: formData.PhoneNo,
         date_registered: formData.date_registered,
+        doctor_id: formData.doctor_id,
       });
 
       // 2. Create card
@@ -181,7 +197,8 @@ export default function RegisterPatient() {
       toast.success("Patient registered successfully!");
       addNotification(
         `New patient registered: ${formData.FirstName} ${formData.Father_Name}`,
-        "success"
+        "success",
+        ["receptionist", "admin"]
       );
 
       // Reset form
@@ -202,6 +219,7 @@ export default function RegisterPatient() {
         issue_date: formatForAPI(new Date()),
         expire_date: formatForAPI(getCardExpiryDate()),
         amount: 100,
+        doctor_id: "",
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -235,17 +253,14 @@ export default function RegisterPatient() {
           )}
           <input
             {...inputProps}
-            className={`w-full bg-gray-50 border ${
-              error
-                ? "border-red-300 focus:ring-red-200"
-                : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-            } text-gray-900 text-sm rounded-lg px-3 py-2.5 outline-none transition-all placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 ${
-              icon ? "pl-9" : ""
-            } ${
-              props.disabled
+            className={`w-full bg-gray-50 border ${error
+              ? "border-red-300 focus:ring-red-200"
+              : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+              } text-gray-900 text-sm rounded-lg px-3 py-2.5 outline-none transition-all placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 ${icon ? "pl-9" : ""
+              } ${props.disabled
                 ? "opacity-60 cursor-not-allowed bg-gray-100"
                 : "bg-white"
-            } ${className}`}
+              } ${className}`}
             autoComplete="off"
           />
         </div>
@@ -338,9 +353,8 @@ export default function RegisterPatient() {
                         name="Sex"
                         value={formData.Sex}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2.5 bg-gray-50 border ${
-                          errors.Sex ? "border-red-300" : "border-gray-200"
-                        } text-gray-700 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none`}
+                        className={`w-full px-3 py-2.5 bg-gray-50 border ${errors.Sex ? "border-red-300" : "border-gray-200"
+                          } text-gray-700 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none`}
                       >
                         <option value="">Select</option>
                         {GENDER_OPTIONS.map((opt) => (
@@ -378,12 +392,10 @@ export default function RegisterPatient() {
                     placeholder="Years"
                   />
                 </div>
-                <CustomInput
+                <EthiopianDatePicker
                   label="Date of Birth"
-                  name="DateOfBirth"
-                  type="date"
                   value={formData.DateOfBirth}
-                  onChange={handleChange}
+                  onChange={(e) => setFormData(prev => ({ ...prev, DateOfBirth: e.target.value }))}
                   error={errors.DateOfBirth}
                   required
                 />
@@ -428,6 +440,25 @@ export default function RegisterPatient() {
                     icon={<Phone size={14} className="text-gray-400" />}
                   />
                 </div>
+                <div className="pt-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Assign Doctor <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="doctor_id"
+                    value={formData.doctor_id}
+                    onChange={handleChange}
+                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select Doctor</option>
+                    {doctors.map(doc => (
+                      <option key={doc.doctor_id} value={doc.doctor_id}>
+                        Dr. {doc.first_name} {doc.last_name} ({doc.specialization})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -454,34 +485,32 @@ export default function RegisterPatient() {
                     <div className="text-gray-500 text-[10px] uppercase">
                       Issued
                     </div>
-                    <div className="text-sm">{formData.issue_date}</div>
+                    <div className="text-sm">{formatDate(formData.issue_date)}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-gray-500 text-[10px] uppercase">
                       Expires
                     </div>
-                    <div className="text-sm">{formData.expire_date}</div>
+                    <div className="text-sm">{formatDate(formData.expire_date)}</div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3 bg-gray-50 rounded-xl p-3 sm:p-4 border border-gray-100">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <CustomInput
+                  <EthiopianDatePicker
                     label="Issue Date"
-                    name="issue_date"
-                    type="date"
                     value={formData.issue_date}
-                    disabled
+                    onChange={(e) => setFormData(prev => ({ ...prev, issue_date: e.target.value }))}
                     className="bg-white text-xs"
+                    disabled
                   />
-                  <CustomInput
+                  <EthiopianDatePicker
                     label="Expiry Date"
-                    name="expire_date"
-                    type="date"
                     value={formData.expire_date}
-                    disabled
+                    onChange={(e) => setFormData(prev => ({ ...prev, expire_date: e.target.value }))}
                     className="bg-white text-xs"
+                    disabled
                   />
                 </div>
                 <div className="pt-2 border-t border-gray-200 mt-2">
@@ -521,7 +550,7 @@ export default function RegisterPatient() {
                         transition-all duration-200 active:scale-95 
                         min-h-[32px] w-full sm:w-auto 
                         disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
+            >
               {loading ? (
                 <span className="flex items-center gap-2">
                   <svg

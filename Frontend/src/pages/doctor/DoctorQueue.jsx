@@ -4,20 +4,22 @@ import Table from '../../components/common/Table';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
+import { getStoredUser, formatDateTime } from '../../utils/helpers';
 
 export default function DoctorQueue() {
     const [queue, setQueue] = useState([]);
     const [loading, setLoading] = useState(true);
+    const user = getStoredUser();
 
     useEffect(() => {
-        fetchQueue();
+        if (user) fetchQueue();
     }, []);
 
     const fetchQueue = async () => {
         try {
             const res = await api.get(API_ROUTES.QUEUES);
-            console.log('Queue API Response:', res.data);
-            setQueue(res.data);
+            const myQueue = res.data.filter(q => q.doctor_id == (user.person_id || user.id));
+            setQueue(myQueue);
         } catch (error) {
             console.error('Error fetching queue:', error);
         } finally {
@@ -34,7 +36,7 @@ export default function DoctorQueue() {
             }
         },
         { header: 'Card No', accessor: 'CardNumber' },
-        { header: 'Arrival Time', render: (row) => row.date ? new Date(row.date).toLocaleTimeString() : '-' },
+        { header: 'Arrival Time', render: (row) => formatDateTime(row.date) },
         { header: 'Status', accessor: 'status' },
     ];
 

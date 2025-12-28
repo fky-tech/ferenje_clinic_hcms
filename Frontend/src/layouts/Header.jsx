@@ -20,7 +20,10 @@ export default function Header() {
     const navigate = useNavigate();
     const profileRef = useRef(null);
     const notifRef = useRef(null);
-    const { notifications, removeNotification, clearAll } = useNotifications();
+    const { notifications: allNotifications, removeNotification, clearAll } = useNotifications();
+    const notifications = allNotifications.filter(n =>
+        !n.targetRoles || n.targetRoles.length === 0 || n.targetRoles.includes(user?.role)
+    );
 
     // Profile Edit State
     const [profileData, setProfileData] = useState({
