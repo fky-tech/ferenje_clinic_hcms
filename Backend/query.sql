@@ -1,4 +1,4 @@
-use ferenje_clinic_hcms;
+use ferenje_clinic_hcms2;
 
 CREATE TABLE `department` (
   `department_id` int NOT NULL AUTO_INCREMENT,
@@ -208,4 +208,27 @@ CREATE TABLE `medication` (
   PRIMARY KEY (`Id`),
   FOREIGN KEY (VisitRecordID) REFERENCES PatientVisitRecord(VisitRecordID) ON UPDATE CASCADE ON DELETE RESTRICT,
   FOREIGN KEY (`doctor_id`) REFERENCES `doctor` (`doctor_id`) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE `report_indicators` (
+  `indicator_code` VARCHAR(50) NOT NULL,
+  `description` TEXT NOT NULL,
+  `category` VARCHAR(100),
+  `page_number` INT DEFAULT 1,
+  PRIMARY KEY (`indicator_code`)
+);
+
+CREATE TABLE `patient_report_submissions` (
+  `submission_id` INT NOT NULL AUTO_INCREMENT,
+  `patient_id` INT NOT NULL,
+  `doctor_id` INT NOT NULL,
+  `indicator_code` VARCHAR(50) NOT NULL,
+  `submission_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `patient_age` INT,
+  `patient_gender` VARCHAR(10),
+  `visit_id` INT DEFAULT NULL,
+  PRIMARY KEY (`submission_id`),
+  FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`doctor_id`) REFERENCES `doctor` (`doctor_id`),
+  FOREIGN KEY (`indicator_code`) REFERENCES `report_indicators` (`indicator_code`) ON DELETE CASCADE
 );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Calendar, FileText, CreditCard, Activity, Users } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -56,6 +56,71 @@ export default function Reports() {
         } catch (error) {
             console.error('Export error:', error);
             toast.error('Failed to generate report', { id: toastId });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+    const [reportYear, setReportYear] = useState(new Date().getFullYear());
+    const [morbidityData, setMorbidityData] = useState([]);
+
+    // Fetch morbidity data when month/year changes
+    useEffect(() => {
+        const fetchMorbidity = async () => {
+            // Don't set global loading here to avoid UI flicker on full page, just local if needed
+            try {
+                const res = await api.get('/reports/tally-morbidity', {
+                    params: { month: reportMonth, year: reportYear }
+                });
+                setMorbidityData(res.data);
+            } catch (error) {
+                console.error('Failed to load morbidity tally', error);
+            }
+        };
+        fetchMorbidity();
+    }, [reportMonth, reportYear]);
+    const handleWordExport = async () => {
+        setLoading(true);
+        const toastId = toast.loading('Generating Word report...');
+        try {
+            const response = await api.get('/reports/export-word', {
+                params: { month: reportMonth, year: reportYear },
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `Monthly_Report_${reportYear}_${reportMonth}.docx`;
+            link.click();
+            toast.success('Word report downloaded', { id: toastId });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('Failed to generate Word report', { id: toastId });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleMorbidityExport = async () => {
+        setLoading(true);
+        const toastId = toast.loading('Generating Morbidity report...');
+        try {
+            const response = await api.get('/reports/export-morbidity', {
+                params: { month: reportMonth, year: reportYear },
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `Morbidity_Matrix_${reportYear}_${reportMonth}.docx`;
+            link.click();
+            toast.success('Morbidity report downloaded', { id: toastId });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('Failed to generate Morbidity report', { id: toastId });
         } finally {
             setLoading(false);
         }
@@ -122,6 +187,96 @@ export default function Reports() {
                     type="patients"
                     colorClass="bg-purple-500"
                 />
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mt-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-indigo-100 rounded-lg">
+                            <FileText className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900">Monthly Government Health Report</h3>
+                            <p className="text-gray-500 text-sm">Official aggregated report of all disease indicators</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <select
+                            value={reportMonth}
+                            onChange={(e) => setReportMonth(e.target.value)}
+                            className="p-2 border rounded-md"
+                        >
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                                <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={reportYear}
+                            onChange={(e) => setReportYear(e.target.value)}
+                            className="p-2 border rounded-md"
+                        >
+                            {[2023, 2024, 2025, 2026].map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleWordExport}
+                                disabled={loading}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                <Download className="w-4 h-4" />
+                                Main Report .docx
+                            </button>
+                            <button
+                                onClick={handleMorbidityExport}
+                                disabled={loading}
+                                className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                <Activity className="w-4 h-4" />
+                                Morbidity Tally .docx
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Morbidity Dashboard Preview */}
+                <div className="border rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
+                        <h4 className="font-semibold text-gray-700 text-sm">Common Morbidity Tally - {new Date(0, reportMonth - 1).toLocaleString('default', { month: 'long' })} {reportYear}</h4>
+                    </div>
+                    <div className="overflow-x-auto p-4">
+                        {loading ? (
+                            <div className="text-center py-4">Loading data...</div>
+                        ) : morbidityData.length === 0 ? (
+                            <div className="text-center py-4 text-gray-500">No morbidity data recorded for this month.</div>
+                        ) : (
+                            <table className="min-w-full text-sm divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                        <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Male</th>
+                                        <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Female</th>
+                                        <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {morbidityData.map((row) => (
+                                        <tr key={row.indicator_code} className="hover:bg-gray-50">
+                                            <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-600">{row.indicator_code}</td>
+                                            <td className="px-3 py-2 text-gray-900">{row.description || row.indicator_code}</td>
+                                            <td className="px-3 py-2 text-center text-blue-600 font-medium">{row.male_count}</td>
+                                            <td className="px-3 py-2 text-center text-pink-600 font-medium">{row.female_count}</td>
+                                            <td className="px-3 py-2 text-center font-bold text-gray-900">{row.total_count}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 mt-8">

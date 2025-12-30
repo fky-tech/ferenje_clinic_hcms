@@ -64,6 +64,10 @@ app.use('/api/lab-test-results', labTestResultRoutes);
 app.use('/api/medications', medicationRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Report Routes
+import reportRoutes from './src/routes/reportRoutes.js';
+app.use('/api/reports', reportRoutes);
+
 // Initialize Cron Jobs
 initCronJobs();
 

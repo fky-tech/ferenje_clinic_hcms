@@ -14,6 +14,7 @@ import InvestigationModal from '../../components/doctor/InvestigationModal';
 import InvestigationHistoryModal from '../../components/doctor/InvestigationHistoryModal';
 import AddAppointmentModal from '../../components/doctor/AddAppointmentModal';
 import LabResultsModal from '../../components/doctor/LabResultsModal';
+import ReportModal from '../../components/doctor/ReportModal';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
 import { getStoredUser, formatDateTime } from '../../utils/helpers';
@@ -39,6 +40,7 @@ export default function DoctorPatientDetails() {
 
     const [isLabModalOpen, setIsLabModalOpen] = useState(false);
     const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isInvestigationHistoryModalOpen, setIsInvestigationHistoryModalOpen] = useState(false);
     const [selectedVisitForInvestigation, setSelectedVisitForInvestigation] = useState(null);
     const [isApptModalOpen, setIsApptModalOpen] = useState(false);
@@ -286,6 +288,9 @@ export default function DoctorPatientDetails() {
                             <Button onClick={() => setIsInvestigationHistoryModalOpen(true)}>
                                 <FileText className="w-4 h-4 mr-2" /> Investigation
                             </Button>
+                            <Button variant="secondary" onClick={() => setIsReportModalOpen(true)}>
+                                <FileText className="w-4 h-4 mr-2" /> Report
+                            </Button>
                         </>
                     )}
                 </div>
@@ -528,6 +533,14 @@ export default function DoctorPatientDetails() {
                 labRequest={selectedLabRequest}
                 labResults={selectedLabResults}
                 patientSex={card?.Sex}
+            />
+
+            <ReportModal
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                patientData={card}
+                doctorId={user.person_id || user.id}
+                visitId={visitId}
             />
         </div>
     );
