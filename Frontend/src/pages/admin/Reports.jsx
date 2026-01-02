@@ -66,20 +66,38 @@ export default function Reports() {
     const [morbidityData, setMorbidityData] = useState([]);
 
     // Fetch morbidity data when month/year changes
+    const fetchMorbidity = async () => {
+        try {
+            const res = await api.get('/reports/tally-morbidity', {
+                params: { month: reportMonth, year: reportYear }
+            });
+            setMorbidityData(res.data);
+        } catch (error) {
+            console.error('Failed to load morbidity tally', error);
+        }
+    };
+
     useEffect(() => {
-        const fetchMorbidity = async () => {
-            // Don't set global loading here to avoid UI flicker on full page, just local if needed
-            try {
-                const res = await api.get('/reports/tally-morbidity', {
-                    params: { month: reportMonth, year: reportYear }
-                });
-                setMorbidityData(res.data);
-            } catch (error) {
-                console.error('Failed to load morbidity tally', error);
-            }
-        };
         fetchMorbidity();
     }, [reportMonth, reportYear]);
+
+    const resetTallyData = async () => {
+        if (window.confirm('WARNING: Are you sure you want to RESET all data for this report? This Action CANNOT be undone, but should be done only after you have successfully downloaded and saved the report.')) {
+            const toastId = toast.loading('Resetting data...');
+            try {
+                await api.post('/reports/reset-tally', {
+                    month: reportMonth,
+                    year: reportYear
+                });
+                toast.success('Report data has been reset to zero', { id: toastId });
+                fetchMorbidity(); // Refresh dashboard
+            } catch (error) {
+                console.error('Reset error:', error);
+                toast.error('Failed to reset data', { id: toastId });
+            }
+        }
+    };
+
     const handleWordExport = async () => {
         setLoading(true);
         const toastId = toast.loading('Generating Word report...');
@@ -95,6 +113,7 @@ export default function Reports() {
             link.download = `Monthly_Report_${reportYear}_${reportMonth}.docx`;
             link.click();
             toast.success('Word report downloaded', { id: toastId });
+
         } catch (error) {
             console.error('Export error:', error);
             toast.error('Failed to generate Word report', { id: toastId });
@@ -118,6 +137,7 @@ export default function Reports() {
             link.download = `Morbidity_Matrix_${reportYear}_${reportMonth}.docx`;
             link.click();
             toast.success('Morbidity report downloaded', { id: toastId });
+
         } catch (error) {
             console.error('Export error:', error);
             toast.error('Failed to generate Morbidity report', { id: toastId });
@@ -241,16 +261,33 @@ export default function Reports() {
                     </div>
                 </div>
 
+                {/* Reset Data Section */}
+                <div className="mb-6 bg-red-50 border border-red-100 rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                        <h4 className="text-sm font-bold text-red-800">Reset Monthly Data</h4>
+                        <p className="text-xs text-red-600 mt-1">
+                            Once you have downloaded <strong>BOTH</strong> the Main Report and the Morbidity Tally,
+                            you should reset the data to prepare for the next month.
+                        </p>
+                    </div>
+                    <button
+                        onClick={resetTallyData}
+                        className="bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        Reset Data
+                    </button>
+                </div>
+
                 {/* Morbidity Dashboard Preview */}
                 <div className="border rounded-lg overflow-hidden">
                     <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
                         <h4 className="font-semibold text-gray-700 text-sm">Common Morbidity Tally - {new Date(0, reportMonth - 1).toLocaleString('default', { month: 'long' })} {reportYear}</h4>
                     </div>
-                    <div className="overflow-x-auto p-4">
+                    <div className="overflow-x-auto p-4 max-h-[500px]">
                         {loading ? (
                             <div className="text-center py-4">Loading data...</div>
                         ) : morbidityData.length === 0 ? (
-                            <div className="text-center py-4 text-gray-500">No morbidity data recorded for this month.</div>
+                            <div className="text-center py-4 text-gray-500">No morbidity data recorded for this month. (Or no diseases match the list)</div>
                         ) : (
                             <table className="min-w-full text-sm divide-y divide-gray-200">
                                 <thead className="bg-gray-50">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, Check, Save } from 'lucide-react';
+import { X, Search, Check, Save, Plus, Trash2 } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
@@ -12,6 +12,10 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
     const [gender, setGender] = useState('');
     const [selectedIndicators, setSelectedIndicators] = useState(new Set());
 
+    // New State for Dynamic List
+    const [morbidityList, setMorbidityList] = useState([]);
+    const [loadingList, setLoadingList] = useState(false);
+
     useEffect(() => {
         if (isOpen && patientData) {
             setAge(patientData.Age || '');
@@ -20,8 +24,22 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
             setSearchQuery('');
             setSelectedIndicators(new Set());
             fetchIndicators('');
+            fetchMorbidityList();
         }
     }, [isOpen, patientData]);
+
+    const fetchMorbidityList = async () => {
+        setLoadingList(true);
+        try {
+            const res = await api.get('/reports/morbidity-list');
+            setMorbidityList(res.data);
+        } catch (error) {
+            console.error('Error fetching morbidity list', error);
+            toast.error('Failed to load common morbidity list');
+        } finally {
+            setLoadingList(false);
+        }
+    };
 
     const fetchIndicators = async (query) => {
         setLoading(true);
@@ -53,6 +71,36 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
             }
             return next;
         });
+    };
+
+    const addToMorbidityList = async (indicator) => {
+        const loadingToast = toast.loading('Adding to common list...');
+        try {
+            await api.post('/reports/morbidity-list', {
+                code: indicator.indicator_code,
+                description: indicator.description
+            });
+            toast.success('Added to Common Morbidity List', { id: loadingToast });
+            fetchMorbidityList(); // Refresh list
+        } catch (error) {
+            console.error('Error adding to list', error);
+            toast.error(error.response?.data?.error || 'Failed to add to list', { id: loadingToast });
+        }
+    };
+
+    const removeFromMorbidityList = async (e, code) => {
+        e.stopPropagation(); // Prevent selection toggle
+        if (!window.confirm('Remove this disease from the Common List?')) return;
+
+        const loadingToast = toast.loading('Removing from list...');
+        try {
+            await api.delete('/reports/morbidity-list', { data: { code } });
+            toast.success('Removed from Common List', { id: loadingToast });
+            fetchMorbidityList(); // Refresh list
+        } catch (error) {
+            console.error('Error removing from list', error);
+            toast.error('Failed to remove from list', { id: loadingToast });
+        }
     };
 
     const handleBatchSubmit = async () => {
@@ -89,30 +137,6 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
             setLoading(false);
         }
     };
-
-    // New static list for Step 2
-    const commonDiseases = [
-        { code: 'DA42', description: 'Peptic ulcer disease' },
-        { code: 'CA062', description: 'Tonsillitis' },
-        { code: 'CA06', description: 'Pharyngitis' },
-        { code: 'CA00', description: 'Nasopharyngitis (flu)' },
-        { code: 'CA400', description: 'Pneumonia' },
-        { code: 'CA42', description: 'Acute bronchitis' },
-        { code: 'CA23', description: 'Bronchial Asthma' },
-        { code: 'IF41', description: 'Malaria (P.v)' },
-        { code: 'IF40', description: 'Malaria (P.f)' },
-        { code: 'IA36', description: 'Amoebic dysentery' },
-        { code: 'DIA_D_ND', description: 'Diarrhea D no D' },
-        { code: 'IF97', description: 'Helminthiasis' },
-        { code: 'GC08', description: 'Urinary tract infection' },
-        { code: 'GC07', description: 'STI' },
-        { code: 'FAZ0', description: 'Rheumatoid Arthritis' },
-        { code: 'IA07', description: 'Typhoid' },
-        { code: 'IC307', description: 'Typhus' },
-        { code: 'HEAD_1', description: '1° Headache' },
-        { code: 'AGN_1', description: 'Acute glomerulonephritis' },
-        { code: 'STI_1', description: 'Soft tissue injury' }
-    ];
 
     if (!isOpen) return null;
 
@@ -159,7 +183,7 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="flex-1 overflow-y-auto flex flex-col">
                     {step === 1 ? (
                         <>
                             <div className="p-4 border-b space-y-3">
@@ -194,6 +218,9 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
                                     <div className="space-y-2 p-2">
                                         {indicators.map((ind) => {
                                             const isSelected = selectedIndicators.has(ind.indicator_code);
+                                            // CHECK IF IN COMMON LIST
+                                            const isInList = morbidityList.some(item => item.code === ind.indicator_code);
+
                                             return (
                                                 <div key={ind.indicator_code} className={`flex items-center justify-between p-3 border rounded-lg transition-all group ${isSelected ? 'bg-green-50 border-green-200' : 'border-gray-100 hover:bg-blue-50 hover:border-blue-200'}`}>
                                                     <div className="flex-1 min-w-0 pr-4">
@@ -203,16 +230,28 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
                                                         </div>
                                                         <div className="text-sm font-medium text-gray-900 truncate">{ind.description}</div>
                                                     </div>
-                                                    <button
-                                                        onClick={() => toggleSelection(ind)}
-                                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center shadow-sm ${isSelected ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
-                                                    >
-                                                        {isSelected ? (
-                                                            <><Check className="w-4 h-4 mr-1.5" /> Selected</>
-                                                        ) : (
-                                                            <><Check className="w-4 h-4 mr-1.5" /> Select</>
+
+                                                    <div className="flex gap-2">
+                                                        {!isInList && (
+                                                            <button
+                                                                onClick={() => addToMorbidityList(ind)}
+                                                                title="Add to Common Morbidity List"
+                                                                className="p-2 rounded-md text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 transition-all"
+                                                            >
+                                                                <Plus className="w-4 h-4" />
+                                                            </button>
                                                         )}
-                                                    </button>
+                                                        <button
+                                                            onClick={() => toggleSelection(ind)}
+                                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center shadow-sm ${isSelected ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
+                                                        >
+                                                            {isSelected ? (
+                                                                <><Check className="w-4 h-4 mr-1.5" /> Selected</>
+                                                            ) : (
+                                                                <><Check className="w-4 h-4 mr-1.5" /> Select</>
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             );
                                         })}
@@ -221,35 +260,52 @@ export default function ReportModal({ isOpen, onClose, patientData, doctorId, vi
                             </div>
                         </>
                     ) : (
-                        // Step 2: Common Diseases Checklist
+                        // Step 2: Common Diseases Checklist - Dynamic
                         <div className="flex flex-col h-full">
                             <div className="p-3 bg-indigo-50 border-b flex justify-between items-center text-sm text-indigo-800 px-4">
                                 <span>Specific Morbidity Tally List</span>
-                                <button onClick={() => setStep(1)} className="text-indigo-600 hover:underline">
-                                    ← Back to Search
-                                </button>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setStep(1)} className="text-indigo-600 hover:underline flex items-center gap-1 group">
+                                        <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" /> Add New
+                                    </button>
+                                    <button onClick={() => setStep(1)} className="text-indigo-600 hover:underline ml-2">
+                                        ← Back to Search
+                                    </button>
+                                </div>
                             </div>
                             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {commonDiseases.map((ind) => {
-                                        const isSelected = selectedIndicators.has(ind.code);
-                                        return (
-                                            <button
-                                                key={ind.code}
-                                                onClick={() => toggleSelection(ind)}
-                                                className={`flex flex-col items-start p-4 border rounded-xl transition-all text-left group relative ${isSelected ? 'bg-green-50 border-green-400 shadow-sm' : 'bg-white border-gray-200 hover:shadow-md hover:border-indigo-300 bg-gradient-to-br hover:from-white hover:to-indigo-50'}`}
-                                            >
-                                                <div className="flex justify-between w-full mb-1">
-                                                    <span className={`text-sm font-bold ${isSelected ? 'text-green-800' : 'text-gray-900'}`}>{ind.description}</span>
-                                                    <div className={`transition-opacity p-1 rounded-full ${isSelected ? 'opacity-100 bg-green-200' : 'opacity-0 group-hover:opacity-100 bg-indigo-100'}`}>
-                                                        <Check className={`w-4 h-4 ${isSelected ? 'text-green-700' : 'text-indigo-600'}`} />
-                                                    </div>
+                                {loadingList ? (
+                                    <div className="flex justify-center p-4">Loading list...</div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {morbidityList.map((ind) => {
+                                            const isSelected = selectedIndicators.has(ind.code);
+                                            return (
+                                                <div key={ind.code} className="relative group/item">
+                                                    <button
+                                                        onClick={() => toggleSelection({ indicator_code: ind.code })}
+                                                        className={`w-full flex flex-col items-start p-4 border rounded-xl transition-all text-left group relative ${isSelected ? 'bg-green-50 border-green-400 shadow-sm' : 'bg-white border-gray-200 hover:shadow-md hover:border-indigo-300 bg-gradient-to-br hover:from-white hover:to-indigo-50'}`}
+                                                    >
+                                                        <div className="flex justify-between w-full mb-1">
+                                                            <span className={`text-sm font-bold ${isSelected ? 'text-green-800' : 'text-gray-900'} pr-6`}>{ind.description}</span>
+                                                            <div className={`transition-opacity p-1 rounded-full ${isSelected ? 'opacity-100 bg-green-200' : 'opacity-0 group-hover:opacity-100 bg-indigo-100'}`}>
+                                                                <Check className={`w-4 h-4 ${isSelected ? 'text-green-700' : 'text-indigo-600'}`} />
+                                                            </div>
+                                                        </div>
+                                                        <span className={`text-xs font-mono group-hover:text-indigo-400 ${isSelected ? 'text-green-600' : 'text-gray-400'}`}>{ind.code}</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => removeFromMorbidityList(e, ind.code)}
+                                                        className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/item:opacity-100 transition-all z-10 border border-transparent hover:border-red-100"
+                                                        title="Remove from list"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
                                                 </div>
-                                                <span className={`text-xs font-mono group-hover:text-indigo-400 ${isSelected ? 'text-green-600' : 'text-gray-400'}`}>{ind.code}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

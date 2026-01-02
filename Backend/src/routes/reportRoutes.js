@@ -2,8 +2,29 @@ import express from 'express';
 import db from '../config/db.js';
 import { generateWordReport } from '../services/reportGenerator.js';
 import { generateMorbidityReport } from '../services/morbidityReportGenerator.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const MORBIDITY_LIST_PATH = path.join(__dirname, '../config/morbidity_list.json');
 
 const router = express.Router();
+
+// Helper to get morbidity list
+const getMorbidityList = () => {
+    try {
+        if (!fs.existsSync(MORBIDITY_LIST_PATH)) {
+            return [];
+        }
+        const data = fs.readFileSync(MORBIDITY_LIST_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.error('Error reading morbidity list:', err);
+        return [];
+    }
+};
 
 // GET /api/reports/indicators - Search indicators
 router.get('/indicators', async (req, res) => {
@@ -28,6 +49,62 @@ router.get('/indicators', async (req, res) => {
     }
 });
 
+// GET /api/reports/morbidity-list - Get Common Morbidity List
+router.get('/morbidity-list', (req, res) => {
+    const list = getMorbidityList();
+    res.json(list);
+});
+
+// POST /api/reports/morbidity-list - Add to Common Morbidity List
+router.post('/morbidity-list', async (req, res) => {
+    try {
+        const { code, description } = req.body;
+        if (!code || !description) {
+            return res.status(400).json({ error: 'Code and Description are required' });
+        }
+
+        const list = getMorbidityList();
+
+        // Check duplicate
+        if (list.find(item => item.code === code)) {
+            return res.status(400).json({ error: 'Code already exists in the list' });
+        }
+
+        list.push({ code, description });
+
+        fs.writeFileSync(MORBIDITY_LIST_PATH, JSON.stringify(list, null, 4));
+        res.status(201).json({ message: 'Added to list', list });
+    } catch (error) {
+        console.error('Error updating morbidity list:', error);
+        res.status(500).json({ error: 'Failed to update list' });
+    }
+});
+
+// DELETE /api/reports/morbidity-list - Remove from Common Morbidity List
+router.delete('/morbidity-list', async (req, res) => {
+    try {
+        const { code } = req.body;
+        if (!code) {
+            return res.status(400).json({ error: 'Code is required' });
+        }
+
+        let list = getMorbidityList();
+        const initialLength = list.length;
+
+        list = list.filter(item => item.code !== code);
+
+        if (list.length === initialLength) {
+            return res.status(404).json({ error: 'Code not found in list' });
+        }
+
+        fs.writeFileSync(MORBIDITY_LIST_PATH, JSON.stringify(list, null, 4));
+        res.json({ message: 'Removed from list', list });
+    } catch (error) {
+        console.error('Error removing from morbidity list:', error);
+        res.status(500).json({ error: 'Failed to update list' });
+    }
+});
+
 // POST /api/reports/submit - Submit a report for a patient
 router.post('/submit', async (req, res) => {
     try {
@@ -37,10 +114,10 @@ router.post('/submit', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Check if indicator exists
+        // Check if indicator exists in DB (Global lookup)
         const [indRows] = await db.query('SELECT indicator_code FROM report_indicators WHERE indicator_code = ?', [indicator_code]);
         if (indRows.length === 0) {
-            return res.status(404).json({ error: 'Indicator not found' });
+            return res.status(404).json({ error: 'Indicator not found in master database' });
         }
 
         // Insert submission
@@ -94,12 +171,14 @@ router.get('/tally', async (req, res) => {
 router.get('/tally-morbidity', async (req, res) => {
     try {
         const { month, year } = req.query;
-        // Specific codes
-        const codes = [
-            'DA42', 'CA062', 'CA06', 'CA00', 'CA400', 'CA42', 'CA23',
-            'IF41', 'IF40', 'IA36', 'DIA_D_ND', 'IF97', 'GC08', 'GC07',
-            'FAZ0', 'IA07', 'IC307', 'HEAD_1', 'AGN_1', 'STI_1'
-        ];
+
+        // Load Dynamic List
+        const list = getMorbidityList();
+        const codes = list.map(item => item.code);
+
+        if (codes.length === 0) {
+            return res.json([]);
+        }
 
         const now = new Date();
         const currentMonth = month || (now.getMonth() + 1);
@@ -131,9 +210,31 @@ router.get('/tally-morbidity', async (req, res) => {
     }
 });
 
+// POST /api/reports/reset-tally - Reset data for a month
+router.post('/reset-tally', async (req, res) => {
+    try {
+        const { month, year } = req.body;
+        if (!month || !year) {
+            return res.status(400).json({ error: 'Month and Year are required' });
+        }
+
+        const query = `
+            DELETE FROM patient_report_submissions 
+            WHERE MONTH(submission_date) = ? 
+            AND YEAR(submission_date) = ?
+        `;
+
+        const [result] = await db.query(query, [month, year]);
+
+        console.log(`Reset tally for ${month}/${year}. Deleted ${result.affectedRows} rows.`);
+        res.json({ message: 'Report data reset successfully', deletedRows: result.affectedRows });
+    } catch (error) {
+        console.error('Error resetting tally:', error);
+        res.status(500).json({ error: 'Failed to reset report data' });
+    }
+});
+
 // GET /api/reports/export-word - Download Word Report
-
-
 router.get('/export-word', async (req, res) => {
     try {
         const { month, year } = req.query;
@@ -153,8 +254,6 @@ router.get('/export-word', async (req, res) => {
 });
 
 // GET /api/reports/export-morbidity - Download Morbidity Word Report
-
-
 router.get('/export-morbidity', async (req, res) => {
     try {
         const { month, year } = req.query;

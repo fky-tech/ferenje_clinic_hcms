@@ -1,32 +1,50 @@
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, HeadingLevel, TextRun } from "docx";
 import db from "../config/db.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
 
-// Specific code order as requested
-const TARGET_CODES = [
-    'DA42', 'CA062', 'CA06', 'CA00', 'CA400', 'CA42', 'CA23',
-    'IF41', 'IF40', 'IA36', 'DIA_D_ND', 'IF97', 'GC08', 'GC07',
-    'FAZ0', 'IA07', 'IC307', 'HEAD_1', 'AGN_1', 'STI_1'
-];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const MORBIDITY_LIST_PATH = path.join(__dirname, '../config/morbidity_list.json');
+
+// Helper to get morbidity list
+const getMorbidityListCodes = () => {
+    try {
+        if (!fs.existsSync(MORBIDITY_LIST_PATH)) {
+            return [];
+        }
+        const data = fs.readFileSync(MORBIDITY_LIST_PATH, 'utf8');
+        const list = JSON.parse(data);
+        return list.map(item => item.code);
+    } catch (err) {
+        console.error('Error reading morbidity list for generator:', err);
+        return [];
+    }
+};
 
 export const generateMorbidityReport = async (month, year) => {
     // 1. Fetch Data
-    // We need to fetch individual submissions to bucket them by age/gender ourselves, 
-    // OR we can do complex SQL. Fetching and JS processing is often easier for matrixes.
+    const TARGET_CODES = getMorbidityListCodes();
 
-    const query = `
-        SELECT 
-            prs.indicator_code,
-            ri.description,
-            prs.patient_age,
-            prs.patient_gender
-        FROM patient_report_submissions prs
-        JOIN report_indicators ri ON prs.indicator_code = ri.indicator_code
-        WHERE MONTH(prs.submission_date) = ? 
-        AND YEAR(prs.submission_date) = ?
-        AND prs.indicator_code IN (?)
-    `;
-
-    const [rows] = await db.query(query, [month, year, TARGET_CODES]);
+    // If no codes in list, we still might want to generate an empty report or handle it gracefully
+    let rows = [];
+    if (TARGET_CODES.length > 0) {
+        const query = `
+            SELECT 
+                prs.indicator_code,
+                ri.description,
+                prs.patient_age,
+                prs.patient_gender
+            FROM patient_report_submissions prs
+            JOIN report_indicators ri ON prs.indicator_code = ri.indicator_code
+            WHERE MONTH(prs.submission_date) = ? 
+            AND YEAR(prs.submission_date) = ?
+            AND prs.indicator_code IN (?)
+        `;
+        const [result] = await db.query(query, [month, year, TARGET_CODES]);
+        rows = result;
+    }
 
     // 2. Initialize Matrix
     // Structure: { code: { '<1F': 0, '<1M': 0, '1-4F': 0, ... } }
@@ -67,9 +85,6 @@ export const generateMorbidityReport = async (month, year) => {
         }
     });
 
-    // Fill descriptions for rows with 0 count from a static map if needed, 
-    // but the key is we iterate TARGET_CODES to build the table.
-
     // 4. Build Document
     const bucketKeys = ['<1yrs', '1-4yrs', '6-14yrs', '15-29yrs', '30-64yrs', '>=68yrs'];
 
@@ -78,7 +93,7 @@ export const generateMorbidityReport = async (month, year) => {
         children: [
             new TableCell({ children: [new Paragraph("Disease")], rowSpan: 2, width: { size: 15, type: WidthType.PERCENTAGE } }),
             new TableCell({ children: [new Paragraph("Code")], rowSpan: 2, width: { size: 10, type: WidthType.PERCENTAGE } }),
-            new TableCell({ children: [new Paragraph("Female")], columnSpan: 6, width: { size: 37, type: WidthType.PERCENTAGE } }), // Approx half of remaining
+            new TableCell({ children: [new Paragraph("Female")], columnSpan: 6, width: { size: 37, type: WidthType.PERCENTAGE } }),
             new TableCell({ children: [new Paragraph("Male")], columnSpan: 6, width: { size: 37, type: WidthType.PERCENTAGE } }),
         ]
     });
@@ -95,14 +110,12 @@ export const generateMorbidityReport = async (month, year) => {
     // Data Rows
     const dataRows = TARGET_CODES.map(code => {
         const data = matrix[code];
-        // If description missing (no rows found), we might want a static map.
-        // For now using code as fallback or let it be empty? Better to have it.
-        // I'll skip fetching description for 0-count rows to save complexity 
-        // unless strictly needed. The user knows the codes.
+        // We need a fallback description if no rows were found for this code. 
+        // Ideally we fetch it from DB or list, but here we can just show Code if description is empty.
 
         return new TableRow({
             children: [
-                new TableCell({ children: [new Paragraph(data.description || code)] }), // Fallback to code if no description found in data
+                new TableCell({ children: [new Paragraph(data.description || code)] }),
                 new TableCell({ children: [new Paragraph(code)] }),
                 // Female Counts
                 ...bucketKeys.map(b => new TableCell({ children: [new Paragraph(String(data.buckets[b].F))] })),
