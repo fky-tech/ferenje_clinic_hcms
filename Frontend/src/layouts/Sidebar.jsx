@@ -44,7 +44,7 @@ const adminMenuItems = [
     { path: '/admin/receptionists', icon: Users, label: 'Manage Receptionists' },
     { path: '/admin/patients', icon: Search, label: 'View Patients' },
     { path: '/admin/lab-requests', icon: FlaskConical, label: 'Lab Reports' },
-    { path: '/admin/reports', icon: FileText, label: 'Daily Reports' }, // Changed placeholder icon and label for clarity
+    // { path: '/admin/reports', icon: FileText, label: 'Daily Reports' }, // Changed placeholder icon and label for clarity
 ];
 
 export default function Sidebar() {
