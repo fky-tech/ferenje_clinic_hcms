@@ -54,6 +54,14 @@ class UltrasoundTestResult {
         );
         return result.affectedRows;
     }
+
+    static async deleteByRequestAndTestId(requestId, testId) {
+        const [result] = await db.execute(
+            'DELETE FROM ultrasound_test_results WHERE request_id = ? AND test_id = ?',
+            [requestId, testId]
+        );
+        return result.affectedRows;
+    }
 }
 
 export default UltrasoundTestResult;

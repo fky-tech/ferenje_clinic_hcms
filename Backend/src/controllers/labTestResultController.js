@@ -1,4 +1,5 @@
 import LabTestResult from '../models/labTestResultModel.js';
+import UltrasoundTestResult from '../models/ultrasoundTestResultModel.js';
 
 class LabTestResultController {
     async createResult(req, res) {
@@ -42,8 +43,34 @@ class LabTestResultController {
     async getResultByRequestId(req, res) {
         try {
             const { requestId } = req.params;
-            const result = await LabTestResult.findByRequestId(requestId);
-            res.status(200).json(result);
+            
+            // Fetch lab test results
+            const labResults = await LabTestResult.findByRequestId(requestId);
+            
+            // Fetch ultrasound results
+            const ultrasoundResults = await UltrasoundTestResult.findByRequestId(requestId);
+            
+            // Map ultrasound results to match the LabTestResult structure for frontend compatibility
+            // The frontend displays: test_name, test_result_value, TestCategory, OptionalNote, UnitOfMeasure
+            const mappedUltrasoundResults = ultrasoundResults.map(u => ({
+                result_id: `us_${u.id}`,
+                request_id: u.request_id,
+                test_id: u.test_id,
+                test_name: u.title || 'Ultrasound',
+                test_result_value: u.conclusion || 'Refer to report', // Show conclusion as the main value
+                interpretation: null,
+                NormalRange_Male: null,
+                NormalRange_Female: null,
+                UnitOfMeasure: null,
+                TestCategory: 'Ultrasound',
+                OptionalNote: null,
+                is_ultrasound: true // Flag to help frontend generic logic if needed
+            }));
+            
+            // Combine both
+            const combinedResults = [...labResults, ...mappedUltrasoundResults];
+            
+            res.status(200).json(combinedResults);
         } catch (error) {
             console.error('Error fetching lab result:', error);
             res.status(500).json({ error: 'Failed to fetch lab result', details: error.message });

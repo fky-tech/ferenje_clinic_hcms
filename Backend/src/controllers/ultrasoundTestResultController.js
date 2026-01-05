@@ -10,8 +10,13 @@ class UltrasoundTestResultController {
 
             const requestId = results[0].request_id;
 
-            // Delete existing results for this request if any (we overwrite)
-            await UltrasoundTestResult.deleteByRequestId(requestId);
+            // Get unique test IDs being updated in this payload
+            const testIds = [...new Set(results.map(r => r.test_id))];
+
+            // Delete existing results ONLY for the specific tests we are updating
+            for (const testId of testIds) {
+                await UltrasoundTestResult.deleteByRequestAndTestId(requestId, testId);
+            }
 
             const promises = results.map(resData => UltrasoundTestResult.create(resData));
             await Promise.all(promises);
