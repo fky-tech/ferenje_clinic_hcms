@@ -67,6 +67,7 @@ export default function Header() {
     };
 
     const handleLogout = () => {
+        clearAll(); // Clear notifications so next user doesn't see them
         clearStoredUser();
         navigate('/');
     };

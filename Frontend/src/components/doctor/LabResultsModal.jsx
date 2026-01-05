@@ -1,8 +1,13 @@
-import { X } from 'lucide-react';
+import { X, Activity } from 'lucide-react';
 import Button from '../common/Button';
+import { useState } from 'react';
+import UltrasoundViewModal from '../lab/UltrasoundViewModal';
 
 export default function LabResultsModal({ isOpen, onClose, labRequest, labResults, patientSex }) {
+    const [isUltrasoundViewModalOpen, setIsUltrasoundViewModalOpen] = useState(false);
     if (!isOpen) return null;
+
+    const hasUltrasound = labResults?.some(r => r.TestCategory === 'Ultrasound');
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -44,8 +49,36 @@ export default function LabResultsModal({ isOpen, onClose, labRequest, labResult
                                     </p>
                                 </div>
                             )}
+                            {labRequest?.OptionalNote && (
+                                <div className="col-span-2 mt-2">
+                                    <p className="text-sm text-gray-600">Lab Note</p>
+                                    <p className="font-medium text-gray-800 bg-yellow-50 p-2 rounded border border-yellow-100 italic">
+                                        "{labRequest.OptionalNote}"
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
+
+                    {/* Ultrasound Report Shortcut */}
+                    {hasUltrasound && (
+                        <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-100 flex items-center justify-between">
+                            <div className="flex items-center space-x-3 text-purple-700">
+                                <Activity className="w-6 h-6" />
+                                <div>
+                                    <p className="font-bold">Ultrasound Imaging Report Available</p>
+                                    <p className="text-xs text-purple-600">This request contains ultrasound studies.</p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="primary"
+                                onClick={() => setIsUltrasoundViewModalOpen(true)}
+                                className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
+                            >
+                                View Ultrasound Report
+                            </Button>
+                        </div>
+                    )}
 
                     {/* Test Results */}
                     <div>
@@ -131,6 +164,11 @@ export default function LabResultsModal({ isOpen, onClose, labRequest, labResult
                                                         {result.test_result_value || '-'}
                                                         {result.UnitOfMeasure && <span className="text-sm ml-1">{result.UnitOfMeasure}</span>}
                                                     </p>
+                                                    {result.OptionalNote && (
+                                                        <p className="text-xs text-gray-500 mt-1 italic">
+                                                            Note: {result.OptionalNote}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 {patientSex === 'Male' && result.NormalRange_Male && (
                                                     <div>
@@ -175,6 +213,14 @@ export default function LabResultsModal({ isOpen, onClose, labRequest, labResult
                     </Button>
                 </div>
             </div>
+
+            {hasUltrasound && (
+                <UltrasoundViewModal
+                    isOpen={isUltrasoundViewModalOpen}
+                    onClose={() => setIsUltrasoundViewModalOpen(false)}
+                    request={labRequest}
+                />
+            )}
         </div>
     );
 }

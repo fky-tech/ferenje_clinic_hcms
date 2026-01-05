@@ -30,8 +30,8 @@ class VisitVitalSigns {
     static async create(vitalData) {
         // Default all fields to null to prevent SQL binding errors
         const visit_id = vitalData.visit_id || null;
-        const bp_systolic = vitalData.bp_systolic || vitalData.SystolicBP || null;
-        const bp_diastolic = vitalData.bp_diastolic || vitalData.DiastolicBP || null;
+        const blood_pressure = vitalData.blood_pressure || vitalData.BloodPressure || null;
+        // Parsing removed as we only store the string now
         const temperature = vitalData.temperature || vitalData.TemperatureC || null;
         const pulse_rate = vitalData.pulse_rate || vitalData.PulseRate || null;
         const respiratory_rate = vitalData.respiratory_rate || vitalData.RespiratoryRate || null;
@@ -40,9 +40,9 @@ class VisitVitalSigns {
 
         const [result] = await db.execute(
             `INSERT INTO visitvitalsigns 
-            (VisitRecordID, SystolicBP, DiastolicBP, TemperatureC, PulseRate, RespiratoryRate, SPO2, WeightKg) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate, respiratory_rate, oxygen_saturation, weight]
+            (VisitRecordID, BloodPressure, TemperatureC, PulseRate, RespiratoryRate, SPO2, WeightKg) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [visit_id, blood_pressure, temperature, pulse_rate, respiratory_rate, oxygen_saturation, weight]
         );
         return result.insertId;
     }
@@ -90,8 +90,7 @@ class VisitVitalSigns {
     static async update(id, vitalData) {
         // Default all fields to null to prevent SQL binding errors
         const visit_id = vitalData.visit_id || null;
-        const bp_systolic = vitalData.bp_systolic || vitalData.SystolicBP || null;
-        const bp_diastolic = vitalData.bp_diastolic || vitalData.DiastolicBP || null;
+        const blood_pressure = vitalData.blood_pressure || vitalData.BloodPressure || null;
         const temperature = vitalData.temperature || vitalData.TemperatureC || null;
         const pulse_rate = vitalData.pulse_rate || vitalData.PulseRate || null;
         const respiratory_rate = vitalData.respiratory_rate || vitalData.RespiratoryRate || null;
@@ -100,10 +99,10 @@ class VisitVitalSigns {
 
         const [result] = await db.execute(
             `UPDATE visitvitalsigns SET 
-            VisitRecordID = ?, SystolicBP = ?, DiastolicBP = ?, TemperatureC = ?, 
+            VisitRecordID = ?, BloodPressure = ?, TemperatureC = ?, 
             PulseRate = ?, RespiratoryRate = ?, SPO2 = ?, WeightKg = ?
             WHERE VitalsID = ?`,
-            [visit_id, bp_systolic, bp_diastolic, temperature, pulse_rate, respiratory_rate, oxygen_saturation, weight, id]
+            [visit_id, blood_pressure, temperature, pulse_rate, respiratory_rate, oxygen_saturation, weight, id]
         );
         return result.affectedRows;
     }

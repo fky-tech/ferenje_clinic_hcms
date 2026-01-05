@@ -23,7 +23,7 @@ export default function Labs() {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const params = {};
+            const params = { category: 'other' };
             if (filterDate) params.date = filterDate;
 
             const response = await api.get('/lab-requests/requests', { params });
@@ -49,10 +49,12 @@ export default function Labs() {
 
     // Filter and group requests
     const groupedRequests = requests.reduce((acc, req) => {
-        // Only show paid and non-completed requests
-        // Note: req.payment_status might be at the test level, so if req is a joined row, check it.
-        // Assuming the API returns requests where payment_status is 'paid' or we filter here.
-        if (req.payment_status !== 'paid' || req.LabStatus === 'completed') return acc;
+        // Show if there are standard tests AND they are not all finished AND paid
+        // standard_tests_count should be > 0 and standard_results_count < standard_tests_count
+        const hasStandardTests = parseInt(req.standard_tests_count) > 0;
+        const standardTestsPending = hasStandardTests && parseInt(req.standard_results_count) < parseInt(req.standard_tests_count);
+
+        if (!standardTestsPending || req.payment_status !== 'paid') return acc;
 
         const cardId = req.CardNumber;
         if (!acc[cardId]) {

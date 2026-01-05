@@ -9,6 +9,7 @@ import { getStoredUser, formatDateTime } from '../../utils/helpers';
 export default function DoctorQueue() {
     const [queue, setQueue] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const user = getStoredUser();
 
     useEffect(() => {
@@ -36,18 +37,39 @@ export default function DoctorQueue() {
             }
         },
         { header: 'Card No', accessor: 'CardNumber' },
-        { header: 'Arrival Time', render: (row) => formatDateTime(row.date) },
+        { header: 'Arrival Time', render: (row) => new Date(row.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
         { header: 'Status', accessor: 'status' },
     ];
 
     if (loading) return <LoadingSpinner />;
 
+    const filteredQueue = queue.filter(q =>
+    (q.FirstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.Father_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.CardNumber?.includes(searchTerm))
+    );
+
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900">Patient Queue</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-gray-900">Patient Queue</h1>
+                <div className="relative">
+                    {/* Search Input handled locally since list is small, or use state if needed */}
+                </div>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
+                <input
+                    type="text"
+                    placeholder="Search patient name or card no..."
+                    value={searchTerm}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+
             <Card>
-                {queue.length === 0 ? <p>No patients in queue.</p> : (
-                    <Table columns={columns} data={queue} />
+                {filteredQueue.length === 0 ? <p className="text-gray-500 text-center py-4">No patients found within queue.</p> : (
+                    <Table columns={columns} data={filteredQueue} />
                 )}
             </Card>
         </div>

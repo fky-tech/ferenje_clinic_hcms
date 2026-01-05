@@ -10,7 +10,9 @@ import {
     LogOut,
     Menu,
     X,
-    Clock
+    Clock,
+    FileText,
+    Activity
 } from 'lucide-react';
 import { useState } from 'react';
 import { clearStoredUser, getStoredUser } from '../utils/helpers';
@@ -32,19 +34,13 @@ const doctorMenuItems = [
     { path: '/doctor/queue', icon: Clock, label: 'Queue' }, // Using Clock for Queue if Users is taken
 ];
 
-const labDoctorMenuItems = [
-    { path: '/lab/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/lab/labs', icon: FlaskConical, label: 'Labs' },
-    { path: '/lab/search-patient', icon: Search, label: 'Search Patients' },
-];
-
 const adminMenuItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/doctors', icon: UserPlus, label: 'Manage Doctors' },
     { path: '/admin/receptionists', icon: Users, label: 'Manage Receptionists' },
     { path: '/admin/patients', icon: Search, label: 'View Patients' },
     { path: '/admin/lab-requests', icon: FlaskConical, label: 'Lab Reports' },
-    { path: '/admin/reports', icon: FileText, label: 'Daily Reports' }, // Changed placeholder icon and label for clarity
+    { path: '/admin/reports', icon: FileText, label: 'Generate Reports' },
 ];
 
 export default function Sidebar() {
@@ -59,7 +55,18 @@ export default function Sidebar() {
 
     let menuItems = receptionistMenuItems;
     if (role === 'doctor') menuItems = doctorMenuItems;
-    if (role === 'lab_doctor') menuItems = labDoctorMenuItems;
+    if (role === 'lab_doctor') {
+        const isUltrasound = user?.lab_specialty === 'ultrasound';
+        menuItems = [
+            { path: '/lab/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+            {
+                path: isUltrasound ? '/lab/todays-ultrasounds' : '/lab/todays-labs',
+                icon: isUltrasound ? Activity : FlaskConical,
+                label: isUltrasound ? "Today's Ultrasounds" : "Today's Labs"
+            },
+            { path: '/lab/search-patient', icon: Search, label: 'Search Patients' },
+        ];
+    }
     if (role === 'admin') menuItems = adminMenuItems;
 
     // Get portal name from person_type

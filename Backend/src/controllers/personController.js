@@ -3,7 +3,7 @@ import Person from '../models/personModel.js';
 class PersonController {
     async createPerson(req, res) {
         try {
-            const { first_name, last_name, email, password, role } = req.body;
+            const { first_name, last_name, email, password, role, lab_specialty } = req.body;
 
             if (!first_name || !last_name || !email || !password || !role) {
                 return res.status(400).json({ error: 'Missing required fields' });
@@ -21,7 +21,10 @@ class PersonController {
                 return res.status(409).json({ error: 'Email already exists' });
             }
 
-            const personId = await Person.create(req.body);
+            const personId = await Person.create({
+                ...req.body,
+                lab_specialty: role === 'lab_doctor' ? lab_specialty : null
+            });
             res.status(201).json({
                 message: 'Person created successfully',
                 person_id: personId
@@ -105,7 +108,8 @@ class PersonController {
                 address: req.body.address || existingPerson.address,
                 phone_number: req.body.phone_number || existingPerson.phone_number,
                 department_id: req.body.department_id || existingPerson.department_id,
-                role: req.body.role || existingPerson.role
+                role: req.body.role || existingPerson.role,
+                lab_specialty: req.body.lab_specialty === undefined ? existingPerson.lab_specialty : req.body.lab_specialty
             };
 
             // 3. Update

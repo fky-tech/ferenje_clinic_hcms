@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { 
+import { useNavigate } from 'react-router-dom';
+import {
     Activity, ClipboardList, FlaskConical, Clock, AlertCircle,
     CheckCircle, Hourglass, TrendingUp, ChevronRight, RefreshCw
 } from 'lucide-react';
@@ -7,6 +8,7 @@ import api from '../../api/axios';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function Dashboard() {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [currentTime, setCurrentTime] = useState('');
     const [stats, setStats] = useState({
@@ -18,10 +20,10 @@ export default function Dashboard() {
 
     useEffect(() => {
         const updateTime = () => {
-            setCurrentTime(new Date().toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
+            setCurrentTime(new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
             }));
         };
         updateTime();
@@ -60,21 +62,21 @@ export default function Dashboard() {
     };
 
     const calculateAdditionalStats = () => {
-        const pendingRequests = recentRequests.filter(r => 
+        const pendingRequests = recentRequests.filter(r =>
             r.LabStatus && r.LabStatus.toLowerCase() === 'pending'
         ).length;
-        const completedRequests = recentRequests.filter(r => 
+        const completedRequests = recentRequests.filter(r =>
             r.LabStatus && r.LabStatus.toLowerCase() === 'completed'
         ).length;
-        const urgentRequests = recentRequests.filter(r => 
-            r.LabStatus && r.LabStatus.toLowerCase() === 'urgent'
+        const urgentRequests = recentRequests.filter(r =>
+            r.UrgentAttention === 1 || (r.LabStatus && r.LabStatus.toLowerCase() === 'urgent')
         ).length;
         return { pendingRequests, completedRequests, urgentRequests };
     };
 
     const getStatusColor = (status) => {
         if (!status) return 'bg-gray-100 text-gray-600';
-        switch(status.toLowerCase()) {
+        switch (status.toLowerCase()) {
             case 'completed': return 'bg-green-100 text-green-700';
             case 'pending': return 'bg-yellow-100 text-yellow-700';
             case 'urgent': return 'bg-red-100 text-red-700';
@@ -84,7 +86,7 @@ export default function Dashboard() {
 
     const getStatusIcon = (status) => {
         if (!status) return <Hourglass size={14} />;
-        switch(status.toLowerCase()) {
+        switch (status.toLowerCase()) {
             case 'completed': return <CheckCircle size={14} />;
             case 'pending': return <Hourglass size={14} />;
             case 'urgent': return <AlertCircle size={14} />;
@@ -96,10 +98,10 @@ export default function Dashboard() {
         if (!dateString) return '';
         try {
             const date = new Date(dateString);
-            return date.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
+            return date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
             });
         } catch {
             return '';
@@ -143,7 +145,7 @@ export default function Dashboard() {
                         <Activity size={16} className="opacity-80" />
                     </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-r from-gray-900  to-blue-700/70 
                         hover:from-blue-600  hover:to-gray-900  text-white p-3 rounded-lg shadow">
                     <div className="flex items-center justify-between">
@@ -154,7 +156,7 @@ export default function Dashboard() {
                         <ClipboardList size={16} className="opacity-80" />
                     </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-r from-gray-900  to-blue-700/70 
                         hover:from-blue-600  hover:to-gray-900  text-white p-3 rounded-lg shadow">
                     <div className="flex items-center justify-between">
@@ -178,7 +180,7 @@ export default function Dashboard() {
                         <p className="text-sm font-bold">{additionalStats.pendingRequests}</p>
                     </div>
                 </div>
-                
+
                 <div className="bg-white p-2 rounded border border-gray-200 flex items-center gap-2">
                     <div className="p-1 bg-green-50 rounded">
                         <CheckCircle size={12} className="text-green-600" />
@@ -188,7 +190,7 @@ export default function Dashboard() {
                         <p className="text-sm font-bold">{additionalStats.completedRequests}</p>
                     </div>
                 </div>
-                
+
                 <div className="bg-white p-2 rounded border border-gray-200 flex items-center gap-2">
                     <div className="p-1 bg-red-50 rounded">
                         <AlertCircle size={12} className="text-red-600" />
@@ -207,14 +209,14 @@ export default function Dashboard() {
                         <ClipboardList size={14} className="text-blue-600" />
                         Today's Requests
                     </h3>
-                    <button 
-                        onClick={() => window.location.href = '/lab/requests'}
+                    <button
+                        onClick={() => navigate('/lab/requests')}
                         className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5"
                     >
                         All <ChevronRight size={12} />
                     </button>
                 </div>
-                
+
                 <div className="divide-y divide-gray-100">
                     {recentRequests.length > 0 ? (
                         recentRequests.slice(0, 3).map((request, index) => (
@@ -254,37 +256,37 @@ export default function Dashboard() {
             <div>
                 <h3 className="text-sm font-bold text-gray-800 mb-2">Quick Actions</h3>
                 <div className="grid grid-cols-2 gap-1.5">
-                    <button 
-                        onClick={() => window.location.href = '/lab/requests/new'}
+                    <button
+                        onClick={() => navigate('/lab/search-patient')}
                         className="bg-white p-2 rounded border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition text-center"
                     >
                         <ClipboardList size={14} className="text-blue-600 mx-auto mb-1" />
-                        <span className="text-xs font-medium text-gray-800">New Request</span>
+                        <span className="text-xs font-medium text-gray-800">Search Patient</span>
                     </button>
-                    
-                    <button 
-                        onClick={() => window.location.href = '/lab/requests'}
+
+                    <button
+                        onClick={() => navigate('/lab/labs')}
                         className="bg-white p-2 rounded border border-gray-200 hover:bg-purple-50 hover:border-purple-200 transition text-center"
                     >
                         <FlaskConical size={14} className="text-purple-600 mx-auto mb-1" />
-                        <span className="text-xs font-medium text-gray-800">All Requests</span>
+                        <span className="text-xs font-medium text-gray-800">All Labs</span>
                     </button>
-                    
-                    <button 
-                        onClick={() => window.location.href = '/lab/results'}
+
+                    {/* <button
+                        onClick={() => navigate('/lab/results')}
                         className="bg-white p-2 rounded border border-gray-200 hover:bg-green-50 hover:border-green-200 transition text-center"
                     >
                         <CheckCircle size={14} className="text-green-600 mx-auto mb-1" />
                         <span className="text-xs font-medium text-gray-800">Results</span>
-                    </button>
-                    
-                    <button 
-                        onClick={() => window.location.href = '/lab/reports'}
+                    </button> */}
+
+                    {/* <button
+                        onClick={() => navigate('/lab/reports')}
                         className="bg-white p-2 rounded border border-gray-200 hover:bg-orange-50 hover:border-orange-200 transition text-center"
                     >
                         <TrendingUp size={14} className="text-orange-600 mx-auto mb-1" />
                         <span className="text-xs font-medium text-gray-800">Reports</span>
-                    </button>
+                    </button> */}
                 </div>
             </div>
         </div>

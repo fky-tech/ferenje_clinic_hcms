@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { Users } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
@@ -15,10 +16,12 @@ export default function ManageQueue() {
     const location = useLocation();
     const [queues, setQueues] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { addNotification } = useNotifications();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [cards, setCards] = useState([]);
     const [doctors, setDoctors] = useState([]);
     const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+    const [queueSearchTerm, setQueueSearchTerm] = useState('');
 
     const [formData, setFormData] = useState({
         card_id: '',
@@ -47,7 +50,7 @@ export default function ManageQueue() {
                 return qDate.getDate() === today.getDate() &&
                     qDate.getMonth() === today.getMonth() &&
                     qDate.getFullYear() === today.getFullYear();
-            });
+            }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // FIFO: Oldest (smallest time) first
             setQueues(todayQueue);
         } catch (error) {
             console.error('Error fetching queues:', error);
@@ -68,6 +71,7 @@ export default function ManageQueue() {
     };
 
     const handleAddToQueue = () => {
+        // Ensure we are only adding to today's queue (implicit since we create new entries with NOW())
         setFormData({
             card_id: '',
             doctor_id: selectedDoctorId || '',
@@ -84,6 +88,17 @@ export default function ManageQueue() {
                 doctor_id: formData.doctor_id,
             });
             toast.success('Patient added to queue');
+
+            // Notify the doctor
+            const doc = doctors.find(d => d.doctor_id == formData.doctor_id);
+            const card = cards.find(c => c.card_id == formData.card_id);
+            addNotification(
+                `Patient ${card?.FirstName} ${card?.Father_Name} added to your queue`,
+                'info',
+                ['doctor'],
+                formData.doctor_id // Optional: if notification supports targeted user ID (Check Context)
+            );
+
             setIsModalOpen(false);
             fetchQueues();
         } catch (error) {
@@ -110,11 +125,14 @@ export default function ManageQueue() {
                 </span>
             )
         },
-        { header: 'Time', render: (row) => formatDateTime(row.date) },
+        { header: 'Time', render: (row) => new Date(row.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
     ];
 
     const filteredQueues = selectedDoctorId
-        ? queues.filter(q => q.doctor_id == selectedDoctorId)
+        ? queues.filter(q =>
+            q.doctor_id == selectedDoctorId &&
+            (`${q.FirstName} ${q.Father_Name} ${q.CardNumber}`).toLowerCase().includes(queueSearchTerm.toLowerCase())
+        )
         : [];
 
     if (loading) return <LoadingSpinner />;
@@ -128,6 +146,20 @@ export default function ManageQueue() {
                 </div>
                 <Button variant="primary" onClick={handleAddToQueue}>Add to Queue</Button>
             </div>
+
+            {selectedDoctorId && (
+                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                    <input
+                        type="text"
+                        placeholder="Search patient in queue..."
+                        value={queueSearchTerm}
+                        onChange={(e) => setQueueSearchTerm(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+            )}
+
+
 
             {/* Doctor Selection Tabs/Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

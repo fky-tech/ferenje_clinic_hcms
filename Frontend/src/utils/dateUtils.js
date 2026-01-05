@@ -7,7 +7,14 @@ import { toEthiopian, toGregorian } from 'ethiopian-calendar-new';
  */
 export const formatToEthiopian = (date) => {
     if (!date) return '';
-    const d = new Date(date);
+    let d;
+    if (typeof date === 'string' && date.length === 10) {
+        const [y, m, day] = date.split('-').map(Number);
+        d = new Date(y, m - 1, day);
+    } else {
+        d = new Date(date);
+    }
+
     if (isNaN(d)) return '';
 
     const eth = toEthiopian(d.getFullYear(), d.getMonth() + 1, d.getDate());
@@ -32,7 +39,14 @@ export const ethToGregorianDate = (year, month, day) => {
  */
 export const getEthiopianParts = (date) => {
     if (!date) return null;
-    const d = new Date(date);
+    let d;
+    if (typeof date === 'string' && date.length === 10) {
+        const [y, m, day] = date.split('-').map(Number);
+        d = new Date(y, m - 1, day);
+    } else {
+        d = new Date(date);
+    }
+
     if (isNaN(d)) return null;
     return toEthiopian(d.getFullYear(), d.getMonth() + 1, d.getDate());
 };

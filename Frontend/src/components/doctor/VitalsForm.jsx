@@ -10,8 +10,7 @@ export default function VitalsForm({ data, onChange, readOnly = false }) {
                 Vital Signs
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Input label="BP Systolic" name="bp_systolic" type="number" value={data.bp_systolic || ''} onChange={onChange} disabled={readOnly} placeholder="mmHg" />
-                <Input label="BP Diastolic" name="bp_diastolic" type="number" value={data.bp_diastolic || ''} onChange={onChange} disabled={readOnly} placeholder="mmHg" />
+                <Input label="BP (Sys/Dia)" name="BloodPressure" type="text" value={data.BloodPressure || data.blood_pressure || ''} onChange={onChange} disabled={readOnly} placeholder="120/80" />
                 <Input label="Temp (°C)" name="temperature" type="number" step="0.1" value={data.temperature || ''} onChange={onChange} disabled={readOnly} />
                 <Input label="Pulse (bpm)" name="pulse_rate" type="number" value={data.pulse_rate || ''} onChange={onChange} disabled={readOnly} />
                 <Input label="Resp Rate" name="respiratory_rate" type="number" value={data.respiratory_rate || ''} onChange={onChange} disabled={readOnly} />

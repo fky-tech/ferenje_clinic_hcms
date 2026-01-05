@@ -13,6 +13,7 @@ class LabTestResult {
         this.NormalRange_Female = data.NormalRange_Female || null;
         this.UnitOfMeasure = data.UnitOfMeasure || null;
         this.TestCategory = data.TestCategory || null;
+        this.OptionalNote = data.OptionalNote || null;
     }
 
     async save() {
@@ -26,10 +27,10 @@ class LabTestResult {
     }
 
     static async create(resultData) {
-        const { request_id, test_id, test_result_value, interpretation } = resultData;
+        const { request_id, test_id, test_result_value, interpretation, OptionalNote } = resultData;
         const [result] = await db.execute(
-            'INSERT INTO labtestresult (request_id, test_id, test_result_value, interpretation) VALUES (?, ?, ?, ?)',
-            [request_id, test_id, test_result_value, interpretation]
+            'INSERT INTO labtestresult (request_id, test_id, test_result_value, interpretation, OptionalNote) VALUES (?, ?, ?, ?, ?)',
+            [request_id, test_id, test_result_value, interpretation, OptionalNote]
         );
         return result.insertId;
     }
@@ -64,10 +65,10 @@ class LabTestResult {
     }
 
     static async update(id, resultData) {
-        const { request_id, test_id, test_result_value, interpretation } = resultData;
+        const { request_id, test_id, test_result_value, interpretation, OptionalNote } = resultData;
         const [result] = await db.execute(
-            'UPDATE labtestresult SET request_id = ?, test_id = ?, test_result_value = ?, interpretation = ? WHERE result_id = ?',
-            [request_id, test_id, test_result_value, interpretation, id]
+            'UPDATE labtestresult SET request_id = ?, test_id = ?, test_result_value = ?, interpretation = ?, OptionalNote = ? WHERE result_id = ?',
+            [request_id, test_id, test_result_value, interpretation, OptionalNote, id]
         );
         return result.affectedRows;
     }

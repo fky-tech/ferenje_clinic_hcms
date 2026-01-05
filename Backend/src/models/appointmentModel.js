@@ -5,8 +5,7 @@ class Appointment {
         this.appointment_id = data.appointment_id || null;
         this.card_id = data.card_id || null;
         this.doctor_id = data.doctor_id || null;
-        this.appointment_start_time = data.appointment_start_time || null;
-        this.appointment_end_time = data.appointment_end_time || null;
+        this.appointment_date = data.appointment_date || null;
         this.status = data.status || 'scheduled';
         // From JOIN
         this.CardNumber = data.CardNumber || null;
@@ -28,10 +27,10 @@ class Appointment {
     }
 
     static async create(appointmentData) {
-        const { card_id, doctor_id, appointment_start_time, appointment_end_time, status } = appointmentData;
+        const { card_id, doctor_id, appointment_date, status } = appointmentData;
         const [result] = await db.execute(
-            'INSERT INTO appointment (card_id, doctor_id, appointment_start_time, appointment_end_time, status) VALUES (?, ?, ?, ?, ?)',
-            [card_id, doctor_id, appointment_start_time, appointment_end_time, status || 'scheduled']
+            'INSERT INTO appointment (card_id, doctor_id, appointment_date, status) VALUES (?, ?, ?, ?)',
+            [card_id, doctor_id, appointment_date, status || 'scheduled']
         );
         return result.insertId;
     }
@@ -48,6 +47,7 @@ class Appointment {
       LEFT JOIN patient p ON c.patient_id = p.patient_id
       LEFT JOIN doctor doc ON a.doctor_id = doc.doctor_id
       LEFT JOIN person per ON doc.doctor_id = per.person_id
+      ORDER BY a.appointment_date DESC
     `);
         return rows.map(row => new Appointment(row));
     }
@@ -76,15 +76,16 @@ class Appointment {
       LEFT JOIN card c ON a.card_id = c.card_id
       LEFT JOIN patient p ON c.patient_id = p.patient_id
       WHERE a.doctor_id = ?
+      ORDER BY a.appointment_date DESC
     `, [doctorId]);
         return rows.map(row => new Appointment(row));
     }
 
     static async update(id, appointmentData) {
-        const { card_id, doctor_id, appointment_start_time, appointment_end_time, status } = appointmentData;
+        const { card_id, doctor_id, appointment_date, status } = appointmentData;
         const [result] = await db.execute(
-            'UPDATE appointment SET card_id = ?, doctor_id = ?, appointment_start_time = ?, appointment_end_time = ?, status = ? WHERE appointment_id = ?',
-            [card_id, doctor_id, appointment_start_time, appointment_end_time, status, id]
+            'UPDATE appointment SET card_id = ?, doctor_id = ?, appointment_date = ?, status = ? WHERE appointment_id = ?',
+            [card_id, doctor_id, appointment_date, status, id]
         );
         return result.affectedRows;
     }

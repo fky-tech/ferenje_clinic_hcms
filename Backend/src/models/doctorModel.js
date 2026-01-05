@@ -11,6 +11,8 @@ class Doctor {
         this.email = data.email || null;
         this.phone_number = data.phone_number || null;
         this.department_name = data.department_name || null;
+        this.lab_specialty = data.lab_specialty || null;
+        this.department_id = data.department_id || null;
     }
 
     async save() {
@@ -32,7 +34,7 @@ class Doctor {
 
     static async findAll() {
         const [rows] = await db.execute(`
-      SELECT d.*, p.first_name, p.last_name, p.email, p.phone_number, dep.department_name
+      SELECT d.*, p.first_name, p.last_name, p.email, p.phone_number, p.lab_specialty, p.department_id, dep.department_name
       FROM doctor d
       JOIN person p ON d.doctor_id = p.person_id
       LEFT JOIN department dep ON p.department_id = dep.department_id
@@ -42,7 +44,7 @@ class Doctor {
 
     static async findById(id) {
         const [rows] = await db.execute(`
-      SELECT d.*, p.first_name, p.last_name, p.email, p.phone_number, dep.department_name
+      SELECT d.*, p.first_name, p.last_name, p.email, p.phone_number, p.lab_specialty, p.department_id, dep.department_name
       FROM doctor d
       JOIN person p ON d.doctor_id = p.person_id
       LEFT JOIN department dep ON p.department_id = dep.department_id

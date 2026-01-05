@@ -27,8 +27,12 @@ export default function EthiopianDatePicker({ label, value, onChange, error, req
 
         // Convert to Gregorian and trigger onChange
         try {
+            // Fix: Use local date components to avoid timezone shifts (off by one day)
             const gregDate = ethToGregorianDate(newParts.year, newParts.month, newParts.day);
-            const iso = gregDate.toISOString().split('T')[0];
+            const year = gregDate.getFullYear();
+            const month = String(gregDate.getMonth() + 1).padStart(2, '0');
+            const day = String(gregDate.getDate()).padStart(2, '0');
+            const iso = `${year}-${month}-${day}`;
             onChange({ target: { name: '', value: iso } }); // Simple mock event
         } catch (e) {
             console.error("Invalid ET date", e);

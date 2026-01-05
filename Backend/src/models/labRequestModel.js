@@ -17,6 +17,11 @@ class LabRequest {
         this.CardNumber = data.CardNumber || null;
         this.card_id = data.card_id || null;
         this.payment_status = data.payment_status || null;
+        this.UrgentAttention = data.UrgentAttention || 0;
+        this.standard_tests_count = data.standard_tests_count || 0;
+        this.standard_results_count = data.standard_results_count || 0;
+        this.ultrasound_tests_count = data.ultrasound_tests_count || 0;
+        this.ultrasound_results_count = data.ultrasound_results_count || 0;
     }
 
     async save() {
@@ -84,7 +89,12 @@ class LabRequest {
 
     static async findByCardId(cardId) {
         const [rows] = await db.execute(`
-            SELECT lr.*, pvr.card_id
+            SELECT DISTINCT lr.*, pvr.card_id,
+                   EXISTS (
+                       SELECT 1 FROM lab_request_tests lrt 
+                       JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                       WHERE lrt.request_id = lr.request_id AND alt.TestCategory = 'Ultrasound'
+                   ) as is_ultrasound
             FROM lab_request lr
             JOIN patientvisitrecord pvr ON lr.VisitRecordID = pvr.VisitRecordID
             WHERE pvr.card_id = ?
@@ -151,13 +161,22 @@ class LabRequest {
         return rows.map(row => new LabRequest(row));
     }
 
-    static async findAllRequests(date = null) {
+    static async findAllRequests(date = null, category = null) {
         let query = `
             SELECT DISTINCT lr.*,
+                   pvr.UrgentAttention,
                    p.FirstName, p.Father_Name, p.Sex, p.Age,
                    c.CardNumber, c.card_id,
                    per.first_name as doctor_first_name, per.last_name as doctor_last_name,
                    (SELECT payment_status FROM lab_request_tests WHERE request_id = lr.request_id LIMIT 1) as payment_status,
+                   (SELECT COUNT(*) FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id AND LOWER(alt.TestCategory) != 'ultrasound') as standard_tests_count,
+                   (SELECT COUNT(*) FROM labtestresult WHERE request_id = lr.request_id) as standard_results_count,
+                   (SELECT COUNT(*) FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id AND LOWER(alt.TestCategory) = 'ultrasound') as ultrasound_tests_count,
+                   (SELECT COUNT(*) FROM ultrasound_test_results WHERE request_id = lr.request_id) as ultrasound_results_count,
                    (SELECT SUM(alt.price) 
                     FROM lab_request_tests lrt 
                     JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
@@ -175,6 +194,24 @@ class LabRequest {
         if (date) {
             query += ' AND DATE(lr.RequestDate) = ?';
             params.push(date);
+        }
+
+        if (category) {
+            if (category === 'ultrasound') {
+                query += ` AND EXISTS (
+                    SELECT 1 FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id AND LOWER(alt.TestCategory) = 'ultrasound'
+                )`;
+            } else if (category === 'other') {
+                // Category 'other' means standard lab tests.
+                // A request should show up in the standard lab portal if it contains AT LEAST ONE test that is NOT an Ultrasound.
+                query += ` AND EXISTS (
+                SELECT 1 FROM lab_request_tests lrt 
+                JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                WHERE lrt.request_id = lr.request_id AND LOWER(alt.TestCategory) != 'ultrasound'
+            )`;
+            }
         }
 
         query += ' ORDER BY lr.RequestDate DESC';

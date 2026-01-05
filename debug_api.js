@@ -29,4 +29,16 @@ async function verify() {
     }
 }
 
+async function debugLabRequests() {
+    try {
+        console.log('Fetching lab requests...');
+        const res = await axios.get(`${API_URL}/lab-requests`);
+        fs.writeFileSync('lab_requests_debug.json', JSON.stringify(res.data, null, 2));
+        console.log('Lab requests fetched. Check lab_requests_debug.json');
+    } catch (e) {
+        console.error('Error fetching lab requests:', e.message);
+    }
+}
+
 verify();
+debugLabRequests();

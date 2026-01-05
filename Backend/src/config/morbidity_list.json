@@ -1,0 +1,82 @@
+[
+    {
+        "code": "DA42",
+        "description": "Peptic ulcer disease"
+    },
+    {
+        "code": "CA062",
+        "description": "Tonsillitis"
+    },
+    {
+        "code": "CA06",
+        "description": "Pharyngitis"
+    },
+    {
+        "code": "CA00",
+        "description": "Nasopharyngitis (flu)"
+    },
+    {
+        "code": "CA400",
+        "description": "Pneumonia"
+    },
+    {
+        "code": "CA42",
+        "description": "Acute bronchitis"
+    },
+    {
+        "code": "CA23",
+        "description": "Bronchial Asthma"
+    },
+    {
+        "code": "IF41",
+        "description": "Malaria (P.v)"
+    },
+    {
+        "code": "IF40",
+        "description": "Malaria (P.f)"
+    },
+    {
+        "code": "IA36",
+        "description": "Amoebic dysentery"
+    },
+    {
+        "code": "DIA_D_ND",
+        "description": "Diarrhea D no D"
+    },
+    {
+        "code": "IF97",
+        "description": "Helminthiasis"
+    },
+    {
+        "code": "GC08",
+        "description": "Urinary tract infection"
+    },
+    {
+        "code": "GC07",
+        "description": "STI"
+    },
+    {
+        "code": "FAZ0",
+        "description": "Rheumatoid Arthritis"
+    },
+    {
+        "code": "IA07",
+        "description": "Typhoid"
+    },
+    {
+        "code": "IC307",
+        "description": "Typhus"
+    },
+    {
+        "code": "HEAD_1",
+        "description": "1° Headache"
+    },
+    {
+        "code": "AGN_1",
+        "description": "Acute glomerulonephritis"
+    },
+    {
+        "code": "STI_1",
+        "description": "Soft tissue injury"
+    }
+]

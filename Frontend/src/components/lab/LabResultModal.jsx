@@ -29,14 +29,16 @@ export default function LabResultModal({ isOpen, onClose, request, onSuccess }) 
             const resultsResponse = await api.get(`/lab-test-results/request/${request.request_id}`);
             const existingResults = resultsResponse.data;
 
-            // Merge them
-            const merged = testsResponse.data.map(test => {
+            // Merge and filter ONLY standard tests (ignore Ultrasound)
+            const standardTests = testsResponse.data.filter(test => test.TestCategory !== 'Ultrasound');
+            const merged = standardTests.map(test => {
                 const result = existingResults.find(r => r.test_id === test.test_id);
                 return {
                     ...test,
                     result_id: result?.result_id || null,
                     result_value: result?.test_result_value || '',
-                    interpretation: result?.interpretation || ''
+                    interpretation: result?.interpretation || '',
+                    notes: result?.OptionalNote || ''
                 };
             });
             setTests(merged);
@@ -51,6 +53,23 @@ export default function LabResultModal({ isOpen, onClose, request, onSuccess }) 
     const handleResultChange = (index, field, value) => {
         const updatedTests = [...tests];
         updatedTests[index] = { ...updatedTests[index], [field]: value };
+
+        // Auto-check abnormality if value changes
+        if (field === 'result_value' && value) {
+            const numVal = parseFloat(value);
+            if (!isNaN(numVal)) {
+                const test = updatedTests[index];
+                const range = request?.Sex === 'Male' ? test.NormalRange_Male : test.NormalRange_Female;
+
+                if (range && range.includes('-')) {
+                    const [min, max] = range.split('-').map(v => parseFloat(v));
+                    if (!isNaN(min) && !isNaN(max)) {
+                        updatedTests[index].is_abnormal = numVal < min || numVal > max;
+                    }
+                }
+            }
+        }
+
         setTests(updatedTests);
     };
 
@@ -66,7 +85,8 @@ export default function LabResultModal({ isOpen, onClose, request, onSuccess }) 
                     request_id: request.request_id,
                     test_id: test.test_id,
                     test_result_value: test.result_value,
-                    interpretation: test.interpretation || null
+                    interpretation: test.interpretation || null,
+                    OptionalNote: test.notes || null,
                 };
 
                 if (test.result_id) {
@@ -85,7 +105,7 @@ export default function LabResultModal({ isOpen, onClose, request, onSuccess }) 
             });
 
             toast.success("Results saved successfully");
-            addNotification(`Lab results ready for ${request.FirstName} ${request.Father_Name}`, 'success', ['doctor', 'lab_doctor', 'admin']);
+            addNotification(`Lab results ready for ${request.FirstName} ${request.Father_Name}`, 'success', ['doctor', 'lab_doctor']);
             onSuccess?.();
             onClose();
         } catch (error) {

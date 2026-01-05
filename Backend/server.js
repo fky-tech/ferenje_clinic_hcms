@@ -21,8 +21,10 @@ import availableLabTestsRoutes from './src/routes/availableLabTestsRoutes.js';
 import labRequestRoutes from './src/routes/labRequestRoutes.js';
 import labRequestTestRoutes from './src/routes/labRequestTestRoutes.js';
 import labTestResultRoutes from './src/routes/labTestResultRoutes.js';
+import ultrasoundTestResultRoutes from './src/routes/ultrasoundTestResultRoutes.js';
 import medicationRoutes from './src/routes/medicationRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
+import familyPlanningRoutes from './src/routes/familyPlanningRoutes.js';
 import initCronJobs from './src/services/cronService.js';
 
 // Load environment variables
@@ -61,8 +63,14 @@ app.use('/api/available-lab-tests', availableLabTestsRoutes);
 app.use('/api/lab-requests', labRequestRoutes);
 app.use('/api/lab-request-tests', labRequestTestRoutes);
 app.use('/api/lab-test-results', labTestResultRoutes);
+app.use('/api/ultrasound-test-results', ultrasoundTestResultRoutes);
 app.use('/api/medications', medicationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/family-planning', familyPlanningRoutes);
+
+// Report Routes
+import reportRoutes from './src/routes/reportRoutes.js';
+app.use('/api/reports', reportRoutes);
 
 // Initialize Cron Jobs
 initCronJobs();

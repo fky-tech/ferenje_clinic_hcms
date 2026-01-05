@@ -61,6 +61,15 @@ export const API_ROUTES = {
     // Available Lab Tests
     AVAILABLE_LAB_TESTS: '/available-lab-tests',
     AVAILABLE_LAB_TEST_BY_ID: (id) => `/available-lab-tests/${id}`,
+    // Family Planning
+    FAMILY_PLANNING: {
+        CATEGORIES: '/family-planning/categories',
+        CARD: (cardId) => `/family-planning/cards/${cardId}`,
+        CREATE_CARD: '/family-planning/cards',
+        UPDATE_CARD: (id) => `/family-planning/cards/${id}`,
+        VISITS: (cardId) => `/family-planning/visits/${cardId}`,
+        CREATE_VISIT: '/family-planning/visits',
+    }
 };
 
 // Card Status
