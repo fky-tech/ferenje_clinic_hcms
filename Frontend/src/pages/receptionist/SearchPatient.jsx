@@ -26,6 +26,19 @@ export default function SearchPatient() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Live search effect
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm.trim()) {
+                handleSearch();
+            } else {
+                setSearchResults([]);
+            }
+        }, 500); // 500ms delay
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
     const handleSearch = async () => {
         if (!searchTerm.trim()) {
             toast.error('Please enter a search term');
@@ -252,8 +265,10 @@ export default function SearchPatient() {
                                 <input
                                     type="text"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value);
+                                        // Simple debounce could be done here or in useEffect
+                                    }}
                                     placeholder="Search by name, card number, or phone..."
                                     className="w-full pl-9 pr-3 py-2 bg-transparent border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition-colors"
                                 />

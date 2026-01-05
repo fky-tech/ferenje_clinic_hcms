@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
+import { useNotifications } from '../../contexts/NotificationContext';
 import Button from '../common/Button';
 import LoadingSpinner from '../common/LoadingSpinner';
 import api from '../../api/axios';
@@ -11,6 +12,7 @@ export default function LabRequestModal({ isOpen, onClose, cardId, visitId, doct
     const [selectedTests, setSelectedTests] = useState([]); // Array of IDs
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const { addNotification } = useNotifications();
 
     useEffect(() => {
         if (isOpen) {
@@ -88,6 +90,14 @@ export default function LabRequestModal({ isOpen, onClose, cardId, visitId, doct
             await Promise.all(promises);
 
             toast.success("Lab request sent successfully");
+
+            // Task 19 & 10: Notify Lab and Receptionist
+            addNotification(
+                `New Lab Request for Card #${cardId}`,
+                'info',
+                ['lab_doctor', 'receptionist']
+            );
+
             onSuccess?.();
             onClose();
         } catch (error) {

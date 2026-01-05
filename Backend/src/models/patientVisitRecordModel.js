@@ -81,6 +81,7 @@ class PatientVisitRecord {
             LEFT JOIN doctor d ON pvr.doctor_id = d.doctor_id
             LEFT JOIN person per ON d.doctor_id = per.person_id
             WHERE pvr.card_id = ?
+            ORDER BY pvr.DateOfVisit DESC
         `, [cardId]);
         return rows.map(row => new PatientVisitRecord(row));
     }

@@ -98,7 +98,7 @@ export default function RegisterPatient() {
     // Card fields
     CardNumber: generateCardNumber(),
     issue_date: formatForAPI(new Date()),
-    expire_date: formatForAPI(getCardExpiryDate()),
+    expire_date: formatForAPI(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)),
     // Payment
     amount: 100, // Default card fee
     doctor_id: "", // Assigned Doctor
@@ -217,7 +217,7 @@ export default function RegisterPatient() {
         date_registered: formatForAPI(new Date()),
         CardNumber: generateCardNumber(),
         issue_date: formatForAPI(new Date()),
-        expire_date: formatForAPI(getCardExpiryDate()),
+        expire_date: formatForAPI(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)),
         amount: 100,
         doctor_id: "",
       });

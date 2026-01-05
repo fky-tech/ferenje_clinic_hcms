@@ -14,7 +14,9 @@ import InvestigationModal from '../../components/doctor/InvestigationModal';
 import InvestigationHistoryModal from '../../components/doctor/InvestigationHistoryModal';
 import AddAppointmentModal from '../../components/doctor/AddAppointmentModal';
 import LabResultsModal from '../../components/doctor/LabResultsModal';
+import UltrasoundViewModal from '../../components/lab/UltrasoundViewModal';
 import ReportModal from '../../components/doctor/ReportModal';
+import FamilyPlanningModal from '../../components/doctor/FamilyPlanningModal';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
 import { getStoredUser, formatDateTime } from '../../utils/helpers';
@@ -47,6 +49,8 @@ export default function DoctorPatientDetails() {
     const [isLabResultsModalOpen, setIsLabResultsModalOpen] = useState(false);
     const [selectedLabRequest, setSelectedLabRequest] = useState(null);
     const [selectedLabResults, setSelectedLabResults] = useState([]);
+    const [isUltrasoundViewModalOpen, setIsUltrasoundViewModalOpen] = useState(false);
+    const [isFPModalOpen, setIsFPModalOpen] = useState(false);
 
     const [history, setHistory] = useState([]);
     const [labResults, setLabResults] = useState([]);
@@ -156,6 +160,8 @@ export default function DoctorPatientDetails() {
             }
 
             const vitalsPayload = { ...vitals, visit_id: currentVisitId };
+            // Ensure BloodPressure key is consistent
+            if (vitals.blood_pressure) vitalsPayload.BloodPressure = vitals.blood_pressure;
             console.log('Saving vitals:', vitalsPayload);
             if (vitals.vital_sign_id) {
                 await api.put(`/visit-vital-signs/${vitals.vital_sign_id}`, vitalsPayload);
@@ -178,6 +184,8 @@ export default function DoctorPatientDetails() {
             // Post-consultation workflow: Complete appointment and Remove from queue
             try {
                 // 1. Handle Appointment
+                // Disabled as per user request to not update appointment status on save visit
+                /*
                 const apptsRes = await api.get(API_ROUTES.APPOINTMENTS);
                 const activeAppt = apptsRes.data.find(a =>
                     a.card_id == cardId &&
@@ -190,6 +198,7 @@ export default function DoctorPatientDetails() {
                         status: 'completed'
                     });
                 }
+                */
 
                 // 2. Handle Queue
                 const queueRes = await api.get(API_ROUTES.QUEUES);
@@ -199,13 +208,13 @@ export default function DoctorPatientDetails() {
                     q.status !== 'completed'
                 );
                 if (activeQueue) {
-                    // Update to completed or delete? User said "remove from... queue table". 
-                    // Usually safer to set status unless explicitly told to HARD delete.
-                    // But "remove from... queue table" often implies delete.
-                    // However, I'll update it to 'completed' first as it's more standard for audit.
-                    // Wait, requirement says "(and queue table)".
-                    // I will DELETE it from the queue table as requested.
                     await api.delete(`${API_ROUTES.QUEUES}/${activeQueue.queue_id}`);
+                    // Notify receptionist that the patient is done
+                    addNotification(
+                        `Consultation completed for ${card.FirstName} ${card.Father_Name}. Patient removed from queue.`,
+                        'success',
+                        ['receptionist']
+                    );
                 }
             } catch (workflowError) {
                 console.error("Workflow update error:", workflowError);
@@ -245,7 +254,7 @@ export default function DoctorPatientDetails() {
     const handleLabResultsClick = async (labRequest) => {
         try {
             setSelectedLabRequest(labRequest);
-            // Fetch test results for this lab request
+            // Fetch test results for this lab request (clinical tests)
             const resultsRes = await api.get(`/lab-test-results/request/${labRequest.request_id}`);
             setSelectedLabResults(resultsRes.data);
             setIsLabResultsModalOpen(true);
@@ -270,26 +279,33 @@ export default function DoctorPatientDetails() {
                         <p className="text-sm text-gray-500">Card: {card.CardNumber} | Age: {card.Age} | Sex: {card.Sex}</p>
                     </div>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex gap-3">
                     {activeTab === 'clinical' && (
                         <>
-                            <Button variant="primary" onClick={handleSaveVisit}>
-                                <Save className="w-4 h-4 mr-2" /> Save Visit
+                            <Button variant="success" onClick={handleSaveVisit} className="px-6 shadow-sm hover:shadow-md">
+                                Save Visit
                             </Button>
-                            <Button onClick={() => {
+                            <Button variant="primary" onClick={() => {
                                 if (!visitId) {
-                                    toast.error("Please save the current visit first before ordering labs.");
+                                    toast.error("Please save the current visit first.");
                                     return;
                                 }
                                 setIsLabModalOpen(true);
-                            }}>
-                                <FlaskConical className="w-4 h-4 mr-2" /> Order Lab
+                            }} className="px-6 shadow-sm hover:shadow-md">
+                                Order Lab
                             </Button>
-                            <Button onClick={() => setIsInvestigationHistoryModalOpen(true)}>
-                                <FileText className="w-4 h-4 mr-2" /> Investigation
+                            <Button variant="secondary" onClick={() => setIsInvestigationHistoryModalOpen(true)} className="px-6 shadow-sm hover:shadow-md">
+                                Investigation
                             </Button>
-                            <Button variant="secondary" onClick={() => setIsReportModalOpen(true)}>
-                                <FileText className="w-4 h-4 mr-2" /> Report
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsFPModalOpen(true)}
+                                className="px-6 shadow-sm hover:shadow-md border-pink-500 text-pink-600 hover:bg-pink-50"
+                            >
+                                Family Plan
+                            </Button>
+                            <Button variant="primary" onClick={() => setIsReportModalOpen(true)} className="px-6 shadow-sm hover:shadow-md bg-indigo-600 hover:bg-indigo-700">
+                                Report
                             </Button>
                         </>
                     )}
@@ -344,25 +360,44 @@ export default function DoctorPatientDetails() {
 
                     {activeTab === 'history' && (
                         <div className="space-y-4">
-                            <div className="mb-4 w-64">
-                                <EthiopianDatePicker
-                                    label="Filter by Date"
-                                    value={historyDateFilter}
-                                    onChange={(e) => setHistoryDateFilter(e.target.value)}
-                                />
+                            <div className="mb-4 w-full sm:w-80 flex items-end gap-2">
+                                <div className="flex-1">
+                                    <EthiopianDatePicker
+                                        label="Filter by Date"
+                                        value={historyDateFilter}
+                                        onChange={(e) => setHistoryDateFilter(e.target.value)}
+                                    />
+                                </div>
+                                {historyDateFilter && (
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => setHistoryDateFilter('')}
+                                        className="mb-0.5 h-[42px]"
+                                    >
+                                        Clear
+                                    </Button>
+                                )}
                             </div>
 
                             {history.filter(h => {
                                 if (!historyDateFilter) return true;
-                                // MySQL returns dates as 'YYYY-MM-DD' strings, extract that portion
-                                const visitDate = h.visit_date ? String(h.visit_date).split('T')[0] : '';
-                                return visitDate === historyDateFilter;
+                                if (!h.visit_date) return false;
+                                const d = new Date(h.visit_date);
+                                const y = d.getFullYear();
+                                const m = String(d.getMonth() + 1).padStart(2, '0');
+                                const day = String(d.getDate()).padStart(2, '0');
+                                return `${y}-${m}-${day}` === historyDateFilter;
                             }).length === 0 ? <p className="text-gray-500">No previous visits found</p> : (
                                 history
                                     .filter(h => {
                                         if (!historyDateFilter) return true;
-                                        const visitDate = h.visit_date ? String(h.visit_date).split('T')[0] : '';
-                                        return visitDate === historyDateFilter;
+                                        if (!h.visit_date) return false;
+                                        const d = new Date(h.visit_date);
+                                        const y = d.getFullYear();
+                                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                                        const day = String(d.getDate()).padStart(2, '0');
+                                        return `${y}-${m}-${day}` === historyDateFilter;
                                     })
                                     .map(visit => (
                                         <div key={visit.visit_id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
@@ -387,20 +422,24 @@ export default function DoctorPatientDetails() {
                                                             UrgentAttention: visit.UrgentAttention === 1
                                                         }} readOnly />
 
-                                                        {historyData[visit.visit_id]?.vitals && (
-                                                            <div className="mt-4">
-                                                                <h4 className="font-medium mb-2">Vital Signs</h4>
-                                                                <VitalsForm data={{
-                                                                    bp_systolic: historyData[visit.visit_id].vitals.bp_systolic,
-                                                                    bp_diastolic: historyData[visit.visit_id].vitals.bp_diastolic,
-                                                                    temperature: historyData[visit.visit_id].vitals.temperature,
-                                                                    pulse_rate: historyData[visit.visit_id].vitals.pulse_rate,
-                                                                    respiratory_rate: historyData[visit.visit_id].vitals.respiratory_rate,
-                                                                    oxygen_saturation: historyData[visit.visit_id].vitals.oxygen_saturation,
-                                                                    weight: historyData[visit.visit_id].vitals.weight,
-                                                                }} readOnly />
-                                                            </div>
-                                                        )}
+                                                        {historyData[visit.visit_id]?.vitals && (() => {
+                                                            const bpParts = (historyData[visit.visit_id].vitals.BloodPressure || '').split('/');
+                                                            return (
+                                                                <div className="mt-4">
+                                                                    <h4 className="font-medium mb-2">Vital Signs</h4>
+                                                                    <VitalsForm data={{
+                                                                        blood_pressure: historyData[visit.visit_id].vitals.BloodPressure,
+                                                                        bp_systolic: bpParts[0] || '',
+                                                                        bp_diastolic: bpParts[1] || '',
+                                                                        temperature: historyData[visit.visit_id].vitals.temperature,
+                                                                        pulse_rate: historyData[visit.visit_id].vitals.pulse_rate,
+                                                                        respiratory_rate: historyData[visit.visit_id].vitals.respiratory_rate,
+                                                                        oxygen_saturation: historyData[visit.visit_id].vitals.oxygen_saturation,
+                                                                        weight: historyData[visit.visit_id].vitals.weight,
+                                                                    }} readOnly />
+                                                                </div>
+                                                            );
+                                                        })()}
 
                                                         {historyData[visit.visit_id]?.physicalExam && (
                                                             <div className="mt-4">
@@ -426,25 +465,58 @@ export default function DoctorPatientDetails() {
                                                     </div>
 
                                                     <div>
-                                                        <h3 className="font-semibold text-gray-800 border-b pb-2 mb-2">Labs</h3>
-                                                        <div className="space-y-2">
+                                                        <h3 className="font-semibold text-gray-800 border-b pb-2 mb-2 flex items-center">
+                                                            <FlaskConical className="w-4 h-4 mr-2 text-blue-500" /> Labs
+                                                        </h3>
+                                                        <div className="space-y-2 mb-4">
                                                             {labResults.filter(l => {
-                                                                if (!l.RequestDate || !visit.visit_date) return false;
+                                                                if (!l.RequestDate || !visit.visit_date || l.is_ultrasound) return false;
                                                                 const labDate = String(l.RequestDate).split('T')[0];
                                                                 const visitDate = String(visit.visit_date).split('T')[0];
                                                                 return labDate === visitDate;
                                                             }).length > 0 ? (
                                                                 labResults.filter(l => {
-                                                                    if (!l.RequestDate || !visit.visit_date) return false;
+                                                                    if (!l.RequestDate || !visit.visit_date || l.is_ultrasound) return false;
                                                                     const labDate = String(l.RequestDate).split('T')[0];
                                                                     const visitDate = String(visit.visit_date).split('T')[0];
                                                                     return labDate === visitDate;
                                                                 }).map(lab => (
-                                                                    <div key={lab.request_id} className="text-sm border p-2 rounded">
-                                                                        #{lab.request_id} - {lab.LabStatus}
+                                                                    <div key={lab.request_id}
+                                                                        onClick={() => handleLabResultsClick(lab)}
+                                                                        className="text-sm border p-2 rounded hover:bg-blue-50 cursor-pointer flex justify-between items-center group"
+                                                                    >
+                                                                        <span>Request #{lab.request_id}</span>
+                                                                        <span className="text-xs text-blue-600 font-medium group-hover:underline">View Results</span>
                                                                     </div>
                                                                 ))
                                                             ) : <p className="text-sm text-gray-500">No labs for this visit</p>}
+                                                        </div>
+
+                                                        <h3 className="font-semibold text-gray-800 border-b pb-2 mb-2 flex items-center">
+                                                            <Activity className="w-4 h-4 mr-2 text-purple-500" /> Ultrasounds
+                                                        </h3>
+                                                        <div className="space-y-2">
+                                                            {labResults.filter(l => {
+                                                                if (!l.RequestDate || !visit.visit_date || !l.is_ultrasound) return false;
+                                                                const labDate = String(l.RequestDate).split('T')[0];
+                                                                const visitDate = String(visit.visit_date).split('T')[0];
+                                                                return labDate === visitDate;
+                                                            }).length > 0 ? (
+                                                                labResults.filter(l => {
+                                                                    if (!l.RequestDate || !visit.visit_date || !l.is_ultrasound) return false;
+                                                                    const labDate = String(l.RequestDate).split('T')[0];
+                                                                    const visitDate = String(visit.visit_date).split('T')[0];
+                                                                    return labDate === visitDate;
+                                                                }).map(lab => (
+                                                                    <div key={lab.request_id}
+                                                                        onClick={() => handleLabResultsClick(lab)}
+                                                                        className="text-sm border p-2 rounded hover:bg-purple-50 cursor-pointer flex justify-between items-center group border-purple-100"
+                                                                    >
+                                                                        <span className="text-purple-700 font-medium">Ultrasound #{lab.request_id}</span>
+                                                                        <span className="text-xs text-purple-600 font-medium group-hover:underline">View Report</span>
+                                                                    </div>
+                                                                ))
+                                                            ) : <p className="text-sm text-gray-500">No ultrasound results for this visit</p>}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -465,9 +537,14 @@ export default function DoctorPatientDetails() {
                                             className="border p-3 rounded-md flex justify-between items-center hover:shadow-md transition-shadow cursor-pointer"
                                             onClick={() => handleLabResultsClick(lab)}
                                         >
-                                            <div>
-                                                <p className="font-medium">Request #{lab.request_id}</p>
-                                                <p className="text-xs text-gray-500">{formatDateTime(lab.RequestDate)}</p>
+                                            <div className="flex items-center space-x-3">
+                                                {lab.is_ultrasound && (
+                                                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Ultrasound</span>
+                                                )}
+                                                <div>
+                                                    <p className="font-medium">Request #{lab.request_id}</p>
+                                                    <p className="text-xs text-gray-500">{formatDateTime(lab.RequestDate)}</p>
+                                                </div>
                                             </div>
                                             <span className={`px-2 py-1 rounded text-xs ${lab.LabStatus === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                                 {lab.LabStatus}
@@ -541,6 +618,22 @@ export default function DoctorPatientDetails() {
                 patientData={card}
                 doctorId={user.person_id || user.id}
                 visitId={visitId}
+            />
+
+            <UltrasoundViewModal
+                isOpen={isUltrasoundViewModalOpen}
+                onClose={() => {
+                    setIsUltrasoundViewModalOpen(false);
+                    setSelectedLabRequest(null);
+                }}
+                request={selectedLabRequest}
+            />
+
+            <FamilyPlanningModal
+                isOpen={isFPModalOpen}
+                onClose={() => setIsFPModalOpen(false)}
+                cardId={card?.card_id}
+                appointmentId={card?.appointment_id}
             />
         </div>
     );

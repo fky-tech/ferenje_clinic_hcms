@@ -35,8 +35,8 @@ export default function ClinicalNotesForm({ data, onChange, readOnly = false }) 
                         value={data.ChiefComplaint || ''}
                         onChange={onChange}
                         disabled={readOnly}
-                        rows={2}
-                        className="input-field w-full border rounded p-2"
+                        rows={1}
+                        className="input-field w-full border rounded p-2 h-10 min-h-[40px]"
                         placeholder="Main reason for visit..."
                     />
                 </div>
@@ -47,8 +47,8 @@ export default function ClinicalNotesForm({ data, onChange, readOnly = false }) 
                         value={data.HPI || ''}
                         onChange={onChange}
                         disabled={readOnly}
-                        rows={4}
-                        className="input-field w-full border rounded p-2"
+                        rows={2}
+                        className="input-field w-full border rounded p-2 h-16 min-h-[64px]"
                         placeholder="Detailed history..."
                     />
                 </div>

@@ -28,7 +28,7 @@ export default function LabRequests() {
     const fetchLabRequests = async () => {
         try {
             const response = await api.get(API_ROUTES.LAB_REQUESTS);
-            setRequests(response.data);
+            setRequests(response.data.filter(req => req.LabStatus === 'pending'));
         } catch (error) {
             console.error('Error fetching lab requests:', error);
         } finally {
@@ -85,7 +85,7 @@ export default function LabRequests() {
             });
 
             toast.success('Payment processed successfully');
-            addNotification(`Payment received for Lab Request #${selectedRequest.request_id}`, 'success', ['receptionist', 'lab_doctor', 'admin']);
+            addNotification(`Payment received for Lab Request #${selectedRequest.request_id}`, 'success', ['receptionist', 'lab_doctor']);
             setIsModalOpen(false);
             // Optional: Update request status locally or refetch
             fetchLabRequests();

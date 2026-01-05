@@ -111,8 +111,8 @@ class LabRequestController {
 
     async getRequests(req, res) {
         try {
-            const { date } = req.query;
-            const requests = await LabRequest.findAllRequests(date);
+            const { date, category } = req.query;
+            const requests = await LabRequest.findAllRequests(date, category);
             res.status(200).json(requests);
         } catch (error) {
             console.error('Error fetching lab requests with filter:', error);

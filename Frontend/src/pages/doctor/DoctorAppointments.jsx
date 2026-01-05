@@ -41,8 +41,7 @@ export default function DoctorAppointments() {
                 return name.trim() || 'Unknown';
             }
         },
-        { header: 'Date', render: (row) => formatDate(row.appointment_start_time) },
-        { header: 'Time', render: (row) => formatDateTime(row.appointment_start_time) },
+        { header: 'Date', render: (row) => formatDate(row.appointment_date) },
         { header: 'Status', accessor: 'status' },
     ];
 

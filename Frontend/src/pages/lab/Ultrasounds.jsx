@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Search, ChevronDown, ChevronRight, FlaskConical, Filter } from 'lucide-react';
+import { Calendar, Search, ChevronDown, ChevronRight, Activity, Filter } from 'lucide-react';
 import api from '../../api/axios';
 import { formatDateTime } from '../../utils/helpers';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import LabResultModal from '../../components/lab/LabResultModal';
+import UltrasoundResultModal from '../../components/lab/UltrasoundResultModal';
 
-export default function Labs() {
+export default function Ultrasounds() {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterDate, setFilterDate] = useState(''); // Empty for all
+    const [filterDate, setFilterDate] = useState('');
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isResultModalOpen, setIsResultModalOpen] = useState(false);
     const [expandedCards, setExpandedCards] = useState({});
@@ -23,13 +23,13 @@ export default function Labs() {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const params = { category: 'other' };
+            const params = { category: 'Ultrasound' };
             if (filterDate) params.date = filterDate;
 
             const response = await api.get('/lab-requests/requests', { params });
             setRequests(response.data);
         } catch (error) {
-            console.error('Error fetching requests:', error);
+            console.error('Error fetching ultrasound requests:', error);
         } finally {
             setLoading(false);
         }
@@ -47,14 +47,12 @@ export default function Labs() {
         }));
     };
 
-    // Filter and group requests
     const groupedRequests = requests.reduce((acc, req) => {
-        // Show if there are standard tests AND they are not all finished AND paid
-        // standard_tests_count should be > 0 and standard_results_count < standard_tests_count
-        const hasStandardTests = parseInt(req.standard_tests_count) > 0;
-        const standardTestsPending = hasStandardTests && parseInt(req.standard_results_count) < parseInt(req.standard_tests_count);
+        // Show if there are ultrasound tests AND they are not all finished AND paid
+        const hasUltrasound = parseInt(req.ultrasound_tests_count) > 0;
+        const ultrasoundPending = hasUltrasound && parseInt(req.ultrasound_results_count) < parseInt(req.ultrasound_tests_count);
 
-        if (!standardTestsPending || req.payment_status !== 'paid') return acc;
+        if (!ultrasoundPending || req.payment_status !== 'paid') return acc;
 
         const cardId = req.CardNumber;
         if (!acc[cardId]) {
@@ -82,10 +80,9 @@ export default function Labs() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 className="text-2xl font-bold text-gray-900">Lab Requests</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Ultrasound Requests</h1>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                    {/* Date Filter */}
                     <div className="relative">
                         <input
                             type="date"
@@ -96,7 +93,6 @@ export default function Labs() {
                         <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
                     </div>
 
-                    {/* Search */}
                     <div className="relative">
                         <input
                             type="text"
@@ -120,7 +116,7 @@ export default function Labs() {
                 <div className="space-y-4">
                     {filteredGroups.length === 0 ? (
                         <div className="text-center py-10 text-gray-500 bg-white rounded-lg shadow">
-                            No requests found.
+                            No ultrasound requests found.
                         </div>
                     ) : (
                         filteredGroups.map((group) => (
@@ -130,8 +126,8 @@ export default function Labs() {
                                     className="p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center"
                                 >
                                     <div className="flex items-center space-x-4">
-                                        <div className="bg-blue-100 p-2 rounded-full text-blue-600">
-                                            <FlaskConical className="w-6 h-6" />
+                                        <div className="bg-purple-100 p-2 rounded-full text-purple-600">
+                                            <Activity className="w-6 h-6" />
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-lg text-gray-900">
@@ -160,7 +156,7 @@ export default function Labs() {
                                             <div
                                                 key={request.request_id}
                                                 onClick={() => handleOpenResultModal(request)}
-                                                className="flex justify-between items-center p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
+                                                className="flex justify-between items-center p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
                                             >
                                                 <div className="flex items-center space-x-3">
                                                     <Calendar className="w-4 h-4 text-gray-400" />
@@ -180,7 +176,7 @@ export default function Labs() {
                                                         }`}>
                                                         {request.LabStatus}
                                                     </span>
-                                                    <Button size="sm" variant="outline">
+                                                    <Button size="sm" variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-100">
                                                         {request.LabStatus === 'completed' ? 'View/Edit' : 'Enter Results'}
                                                     </Button>
                                                 </div>
@@ -195,7 +191,7 @@ export default function Labs() {
             )}
 
             {selectedRequest && (
-                <LabResultModal
+                <UltrasoundResultModal
                     isOpen={isResultModalOpen}
                     onClose={() => {
                         setIsResultModalOpen(false);
@@ -208,3 +204,4 @@ export default function Labs() {
         </div>
     );
 }
+

@@ -11,6 +11,7 @@ class LabRequestTest {
         this.UnitOfMeasure = data.UnitOfMeasure || null;
         this.NormalRange_Male = data.NormalRange_Male || null;
         this.NormalRange_Female = data.NormalRange_Female || null;
+        this.TestCategory = data.TestCategory || null;
         this.payment_status = data.payment_status || 'unpaid';
     }
 
@@ -35,7 +36,7 @@ class LabRequestTest {
 
     static async findByRequestId(requestId) {
         const [rows] = await db.execute(`
-            SELECT lrt.*, alt.test_name, alt.price, alt.UnitOfMeasure, alt.NormalRange_Male, alt.NormalRange_Female, lrt.payment_status
+            SELECT lrt.*, alt.test_name, alt.price, alt.UnitOfMeasure, alt.NormalRange_Male, alt.NormalRange_Female, alt.TestCategory, lrt.payment_status
             FROM lab_request_tests lrt
             JOIN available_lab_tests alt ON lrt.test_id = alt.test_id
             WHERE lrt.request_id = ?

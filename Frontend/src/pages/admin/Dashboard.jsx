@@ -35,10 +35,10 @@ export default function Dashboard() {
 
     useEffect(() => {
         const updateTime = () => {
-            setCurrentTime(new Date().toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
+            setCurrentTime(new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
             }));
         };
         updateTime();
@@ -105,22 +105,14 @@ export default function Dashboard() {
                 <div className="bg-gradient-to-br from-gray-900 to-blue-700/70 text-white p-3 rounded-lg shadow">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-xs text-blue-100 mb-1">Patients</p>
+                            <p className="text-xs text-blue-100 mb-1">Total Patients</p>
                             <p className="text-lg font-bold">{stats.totalPatients}</p>
                         </div>
                         <Users size={14} className="opacity-80" />
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br  from-gray-900 to-blue-700/70 text-white p-3 rounded-lg shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-green-100 mb-1">Today</p>
-                            <p className="text-lg font-bold">{stats.todaysPatients}</p>
-                        </div>
-                        <Activity size={14} className="opacity-80" />
-                    </div>
-                </div>
+                {/* Removed Today's Patients Card as requested */}
 
                 <div className="bg-gradient-to-br  from-gray-900 to-blue-700/70 text-white p-3 rounded-lg shadow">
                     <div className="flex items-center justify-between">
@@ -146,7 +138,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs text-amber-100 mb-1">Revenue</p>
-                            <p className="text-lg font-bold">${stats.totalRevenue} K</p>
+                            <p className="text-lg font-bold">Birr {stats.totalRevenue.toLocaleString()}</p>
                         </div>
                         <DollarSign size={14} className="opacity-80" />
                     </div>
@@ -161,14 +153,14 @@ export default function Dashboard() {
                         Revenue Overview
                     </h3>
                     <span className="text-xs text-gray-500 font-medium">
-                        ${stats.totalRevenue.toLocaleString()}
+                        Birr {stats.totalRevenue.toLocaleString()}
                     </span>
                 </div>
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-600">Monthly Average</span>
                         <span className="text-xs font-medium text-gray-800">
-                            ${(stats.totalRevenue / 12).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                            Birr {(stats.totalRevenue / 12).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -179,21 +171,21 @@ export default function Dashboard() {
 
             <div className="space-y-2">
                 <h3 className="text-lg ml-4 font-bold text-gray-800 flex  gap-2">
-                    
+
                     Quick Management
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {/* Doctors Card */}
-                    <div 
+                    <div
                         onClick={() => navigate('/admin/doctors')}
                         className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                     >
-                        
+
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                                
-                                
+
+
                             </div>
                             <div className="flex-1">
                                 <h4 className="font-bold text-gray-800 text-sm">Manage Doctors</h4>
@@ -211,7 +203,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Receptionists Card */}
-                    <div 
+                    <div
                         onClick={() => navigate('/admin/receptionists')}
                         className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                     >
@@ -220,7 +212,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                              
+
                             </div>
                             <div className="flex-1">
                                 <h4 className="font-bold text-gray-800 text-sm">Manage Receptionists</h4>
@@ -238,7 +230,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Reports Card */}
-                    <div 
+                    <div
                         onClick={() => navigate('/admin/reports')}
                         className="group relative overflow-hidden bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                     >
@@ -247,7 +239,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                             
+
                             </div>
                             <div className="flex-1">
                                 <h4 className="font-bold text-gray-800 text-sm">Generate Reports</h4>
@@ -265,7 +257,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Patients Card */}
-                    <div 
+                    <div
                         onClick={() => navigate('/admin/patients')}
                         className="group relative overflow-hidden bg-gradient-to-br from-green-50 to-lime-50 border border-green-200 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                     >
@@ -274,7 +266,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                           
+
                             </div>
                             <div className="flex-1">
                                 <h4 className="font-bold text-gray-800 text-sm">Patient Records</h4>

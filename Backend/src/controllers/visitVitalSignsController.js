@@ -54,9 +54,6 @@ class VisitVitalSignsController {
         try {
             const { id } = req.params;
             const affectedRows = await VisitVitalSigns.update(id, req.body);
-            if (affectedRows === 0) {
-                return res.status(404).json({ error: 'Vital signs not found' });
-            }
             res.status(200).json({ message: 'Vital signs updated successfully' });
         } catch (error) {
             console.error('Error updating vital signs:', error);

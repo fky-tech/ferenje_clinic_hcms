@@ -54,9 +54,6 @@ class VisitPhysicalExamController {
         try {
             const { id } = req.params;
             const affectedRows = await VisitPhysicalExam.update(id, req.body);
-            if (affectedRows === 0) {
-                return res.status(404).json({ error: 'Physical exam not found' });
-            }
             res.status(200).json({ message: 'Physical exam updated successfully' });
         } catch (error) {
             console.error('Error updating physical exam:', error);

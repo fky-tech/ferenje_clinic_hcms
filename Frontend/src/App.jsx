@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/auth/Login';
 import MainLayout from './layouts/MainLayout';
-import Dashboard from './pages/receptionist/Dashboard';
+import Dashboard from './pages/Receptionist/Dashboard';
 import RegisterPatient from './pages/receptionist/RegisterPatient';
 import SearchPatient from './pages/receptionist/SearchPatient';
 import ViewCards from './pages/receptionist/ViewCards';
@@ -16,15 +16,16 @@ import DoctorPatientList from './pages/doctor/DoctorPatientList';
 import DoctorPatientDetails from './pages/doctor/DoctorPatientDetails';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
 import DoctorQueue from './pages/doctor/DoctorQueue';
-import LabDashboard from './pages/lab/Dashboard';
+import LabDashboard from './pages/Lab/Dashboard';
 import Labs from './pages/lab/Labs';
+import Ultrasounds from './pages/lab/Ultrasounds';
 import LabSearchPatient from './pages/lab/SearchPatient';
 import LabPatientDetails from './pages/lab/PatientDetails';
 import AdminDashboard from './pages/admin/Dashboard';
 import ManageDoctors from './pages/admin/ManageDoctors';
 import ManageReceptionists from './pages/admin/ManageReceptionists';
 import ViewPatients from './pages/admin/Patients';
-import Reports from './pages/admin/Reports';
+import Reports from './pages/Admin/Reports';
 import AdminLabRequests from './pages/admin/LabRequests';
 
 // Protected Route Component
@@ -113,7 +114,8 @@ function App() {
                 }>
                     <Route index element={<Navigate to="dashboard" replace />} />
                     <Route path="dashboard" element={<LabDashboard />} />
-                    <Route path="labs" element={<Labs />} />
+                    <Route path="todays-labs" element={<Labs />} />
+                    <Route path="todays-ultrasounds" element={<Ultrasounds />} />
                     <Route path="search-patient" element={<LabSearchPatient />} />
                     <Route path="patient/:cardId" element={<LabPatientDetails />} />
                 </Route>

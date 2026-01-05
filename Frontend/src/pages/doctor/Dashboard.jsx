@@ -8,6 +8,7 @@ import {
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
 import { getStoredUser, isDateToday, formatDate, formatDateTime } from '../../utils/helpers';
+import Modal from '../../components/common/Modal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function DoctorDashboard() {
@@ -21,6 +22,8 @@ export default function DoctorDashboard() {
         todayAppointments: 0,
         queueCount: 0
     });
+    const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+    const [allActivities, setAllActivities] = useState([]);
 
     const [recentActivities, setRecentActivities] = useState([]);
 
@@ -39,28 +42,34 @@ export default function DoctorDashboard() {
         const timeInterval = setInterval(updateDateTime, 30000);
 
         const fetchDashboardData = async () => {
+            const currentUser = getStoredUser();
+            if (!currentUser) return;
+
             try {
-                const [queueRes, apptRes] = await Promise.all([
-                    api.get(API_ROUTES.QUEUES),
-                    api.get(API_ROUTES.APPOINTMENTS)
+                const doctorId = currentUser.person_id || currentUser.id;
+
+                const [apptRes, queueRes] = await Promise.all([
+                    api.get(API_ROUTES.APPOINTMENTS),
+                    api.get(API_ROUTES.QUEUES)
                 ]);
 
-                const doctorId = user?.person_id || user?.id;
-
+                // Filter by doctor_id and today's date
                 const todayAppts = apptRes.data.filter(a =>
                     a.doctor_id == doctorId &&
-                    isDateToday(new Date(a.appointment_start_time))
+                    a.status !== 'cancelled' &&
+                    isDateToday(a.appointment_date)
                 );
 
                 const queueCount = queueRes.data.filter(q =>
                     q.doctor_id == doctorId &&
                     isDateToday(q.date) &&
-                    q.status !== 'completed'
+                    q.status === 'waiting'
                 ).length;
 
                 // Generate recent activities
-                const activities = generateRecentActivities(todayAppts, queueRes.data.filter(q => q.doctor_id == doctorId));
-                setRecentActivities(activities);
+                const activities = generateRecentActivities(apptRes.data.filter(a => a.doctor_id == doctorId), queueRes.data.filter(q => q.doctor_id == doctorId));
+                setRecentActivities(activities.slice(0, 5));
+                setAllActivities(activities);
 
                 setStats({
                     todayPatients: queueCount + todayAppts.length,
@@ -71,7 +80,8 @@ export default function DoctorDashboard() {
             } catch (error) {
                 console.error("Dashboard fetch error:", error);
                 // Fallback to sample data if API fails
-                setRecentActivities(generateSampleActivities());
+                setRecentActivities(generateSampleActivities().slice(0, 5));
+                setAllActivities(generateSampleActivities());
             } finally {
                 setLoading(false);
             }
@@ -80,20 +90,20 @@ export default function DoctorDashboard() {
         fetchDashboardData();
 
         return () => clearInterval(timeInterval);
-    }, [user]);
+    }, []);
 
     const generateRecentActivities = (appointments, queues) => {
         const activities = [];
 
         // Add appointment activities
-        appointments.slice(0, 3).forEach(appt => {
+        appointments.forEach(appt => {
             activities.push({
-                id: `appt-${appt.id}`,
+                id: `appt-${appt.appointment_id}`,
                 type: 'appointment',
-                title: `Appointment with ${appt.patient_name || 'Patient'}`,
-                description: `Scheduled for ${formatDateTime(appt.appointment_start_time)}`,
-                time: formatDateTime(appt.appointment_start_time),
-                status: 'scheduled',
+                title: `Appointment with ${appt.FirstName} ${appt.Father_Name}`,
+                description: `Scheduled for ${formatDate(appt.appointment_date)}`,
+                time: appt.appointment_date,
+                status: appt.status,
                 icon: Calendar,
                 color: 'text-purple-600',
                 bg: 'bg-purple-100'
@@ -101,7 +111,7 @@ export default function DoctorDashboard() {
         });
 
         // Add queue activities
-        queues.slice(0, 3).forEach(queue => {
+        queues.forEach(queue => {
             let status, icon, color, bg;
 
             switch (queue.status) {
@@ -125,11 +135,11 @@ export default function DoctorDashboard() {
             }
 
             activities.push({
-                id: `queue-${queue.id}`,
+                id: `queue-${queue.queue_id}`,
                 type: 'queue',
-                title: `Patient ${queue.patient_name || 'in queue'}`,
+                title: `Patient ${queue.FirstName || ''} ${queue.Father_Name || ''}`,
                 description: `Queue ${queue.status.replace('_', ' ')}`,
-                time: queue.updated_at ? formatDateTime(queue.updated_at) : 'Just now',
+                time: queue.date,
                 status: status,
                 icon: icon,
                 color: color,
@@ -137,7 +147,7 @@ export default function DoctorDashboard() {
             });
         });
 
-        return activities.sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5);
+        return activities.sort((a, b) => new Date(b.time) - new Date(a.time));
     };
 
     const generateSampleActivities = () => [
@@ -146,7 +156,7 @@ export default function DoctorDashboard() {
             type: 'appointment',
             title: 'Appointment with John Doe',
             description: 'Routine checkup scheduled',
-            time: '10:30 AM',
+            time: new Date().toISOString(),
             status: 'scheduled',
             icon: Calendar,
             color: 'text-purple-600',
@@ -157,7 +167,7 @@ export default function DoctorDashboard() {
             type: 'queue',
             title: 'Patient Jane Smith',
             description: 'Consultation completed',
-            time: '10:15 AM',
+            time: new Date().toISOString(),
             status: 'completed',
             icon: CheckCircle,
             color: 'text-green-600',
@@ -168,7 +178,7 @@ export default function DoctorDashboard() {
             type: 'queue',
             title: 'Patient Robert Johnson',
             description: 'Currently in consultation',
-            time: '10:00 AM',
+            time: new Date().toISOString(),
             status: 'in-progress',
             icon: Clock,
             color: 'text-blue-600',
@@ -179,7 +189,7 @@ export default function DoctorDashboard() {
             type: 'appointment',
             title: 'New patient registration',
             description: 'Emily Chen registered',
-            time: '9:45 AM',
+            time: new Date().toISOString(),
             status: 'new',
             icon: UserPlus,
             color: 'text-orange-600',
@@ -190,7 +200,7 @@ export default function DoctorDashboard() {
             type: 'queue',
             title: 'Patient waiting',
             description: 'In queue for 15 minutes',
-            time: '9:30 AM',
+            time: new Date().toISOString(),
             status: 'new',
             icon: Bell,
             color: 'text-orange-600',
@@ -275,7 +285,9 @@ export default function DoctorDashboard() {
                                 <Bell size={18} className="text-blue-800" />
                                 Recent Activity
                             </h2>
-                            <button className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                            <button
+                                onClick={() => setIsActivityModalOpen(true)}
+                                className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
                                 View All
                                 <ChevronRight size={12} />
                             </button>
@@ -295,7 +307,7 @@ export default function DoctorDashboard() {
                                             <div className="flex justify-between items-start">
                                                 <h3 className="font-semibold text-slate-800 text-sm truncate">{activity.title}</h3>
                                                 <div className="text-xs text-slate-500 font-medium">
-                                                    {activity.time}
+                                                    {formatDateTime(activity.time)}
                                                 </div>
                                             </div>
                                             <p className="text-xs text-slate-600 mt-0.5">{activity.description}</p>
@@ -309,6 +321,29 @@ export default function DoctorDashboard() {
                         </div>
                     </div>
                 </div>
+
+                <Modal isOpen={isActivityModalOpen} onClose={() => setIsActivityModalOpen(false)} title="Recent Activity History" width="max-w-2xl">
+                    <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+                        {allActivities.map((activity) => {
+                            const Icon = activity.icon;
+                            return (
+                                <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50">
+                                    <div className={`p-2 rounded-lg ${activity.bg} ${activity.color}`}>
+                                        <Icon size={16} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="font-semibold text-slate-800 text-sm">{activity.title}</h3>
+                                            <span className="text-xs text-slate-500">{formatDateTime(activity.time)}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-600">{activity.description}</p>
+                                        <div className="mt-1">{getStatusBadge(activity.status)}</div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </Modal>
 
                 {/* Quick Actions Section - Smaller */}
                 <div className="space-y-4">

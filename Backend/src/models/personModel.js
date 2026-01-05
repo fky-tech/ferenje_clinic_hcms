@@ -11,6 +11,7 @@ class Person {
         this.phone_number = data.phone_number || null;
         this.department_id = data.department_id || null;
         this.role = data.role || null;
+        this.lab_specialty = data.lab_specialty || null;
     }
 
     // Instance method to save
@@ -26,10 +27,10 @@ class Person {
 
     // Static method - Create
     static async create(personData) {
-        const { first_name, last_name, email, password, address, phone_number, department_id, role } = personData;
+        const { first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty } = personData;
         const [result] = await db.execute(
-            'INSERT INTO person (first_name, last_name, email, password, address, phone_number, department_id, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [first_name, last_name, email, password, address, phone_number, department_id, role]
+            'INSERT INTO person (first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty]
         );
         return result.insertId;
     }
@@ -69,10 +70,10 @@ class Person {
 
     // Static method - Update
     static async update(id, personData) {
-        const { first_name, last_name, email, password, address, phone_number, department_id, role } = personData;
+        const { first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty } = personData;
         const [result] = await db.execute(
-            'UPDATE person SET first_name = ?, last_name = ?, email = ?, password = ?, address = ?, phone_number = ?, department_id = ?, role = ? WHERE person_id = ?',
-            [first_name, last_name, email, password, address, phone_number, department_id, role, id]
+            'UPDATE person SET first_name = ?, last_name = ?, email = ?, password = ?, address = ?, phone_number = ?, department_id = ?, role = ?, lab_specialty = ? WHERE person_id = ?',
+            [first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty, id]
         );
         return result.affectedRows;
     }

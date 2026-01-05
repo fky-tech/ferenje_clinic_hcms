@@ -51,7 +51,7 @@ export default function Dashboard() {
 
             // Calculate today's stats
             const patientsToday = patients.data.filter(p => isDateToday(p.date_registered)).length;
-            const appointmentsToday = appointments.data.filter(a => isDateToday(a.appointment_start_time)).length;
+            const appointmentsToday = appointments.data.filter(a => isDateToday(a.appointment_date) && a.status !== 'cancelled').length;
             const queueToday = queues.data.filter(q => isDateToday(q.date) && q.status === 'waiting');
             const paymentsToday = payments.data.filter(p => isDateToday(p.billing_date));
             const revenueToday = paymentsToday.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
@@ -108,7 +108,7 @@ export default function Dashboard() {
 
         },
         {
-            title: 'Appointments',
+            title: 'Today\'s Appointments',
             value: stats.appointmentsToday,
             icon: Calendar,
             trend: '+5%',
@@ -298,9 +298,7 @@ export default function Dashboard() {
                                 ))}
                             </div>
                         )}
-                        <button className="w-full mt-3 flex items-center justify-center gap-1 text-[10px] font-bold text-gray-400 hover:text-indigo-600 uppercase tracking-widest transition-colors py-2 border border-dashed border-gray-200 rounded-lg hover:border-indigo-200 hover:bg-indigo-50/50">
-                            View Full History <ArrowUpRight size={12} />
-                        </button>
+
                     </Card>
                 </div>
             </div>

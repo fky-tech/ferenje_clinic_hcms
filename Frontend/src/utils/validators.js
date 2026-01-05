@@ -93,17 +93,8 @@ export const validateAppointmentForm = (data) => {
         errors.doctor_id = 'Doctor is required';
     }
 
-    if (!data.appointment_start_time) {
-        errors.appointment_start_time = 'Start time is required';
-    }
-
-    // Check if end time is after start time
-    if (data.appointment_start_time && data.appointment_end_time) {
-        const start = new Date(data.appointment_start_time);
-        const end = new Date(data.appointment_end_time);
-        if (end <= start) {
-            errors.appointment_end_time = 'End time must be after start time';
-        }
+    if (!data.appointment_date) {
+        errors.appointment_date = 'Appointment date is required';
     }
 
     return errors;

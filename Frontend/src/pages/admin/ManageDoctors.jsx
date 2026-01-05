@@ -24,7 +24,8 @@ export default function ManageDoctors() {
         address: '',
         department_id: '',
         office_no: '',
-        specialization: ''
+        specialization: '',
+        lab_specialty: ''
     });
 
     useEffect(() => {
@@ -37,6 +38,8 @@ export default function ManageDoctors() {
                 api.get('/doctors'),
                 api.get('/departments')
             ]);
+            // For existing doctors, we need to make sure we have their lab_specialty from the person record
+            // The /doctors API joins person, so it should be there if we updated the person model
             setDoctors(doctorsRes.data);
             setDepartments(deptsRes.data);
             setLoading(false);
@@ -59,7 +62,8 @@ export default function ManageDoctors() {
                 address: doctor.address || '',
                 department_id: doctor.department_id || '',
                 office_no: doctor.office_no,
-                specialization: doctor.specialization
+                specialization: doctor.specialization,
+                lab_specialty: doctor.lab_specialty || ''
             });
         } else {
             setSelectedDoctor(null);
@@ -72,7 +76,8 @@ export default function ManageDoctors() {
                 address: '',
                 department_id: '',
                 office_no: '',
-                specialization: ''
+                specialization: '',
+                lab_specialty: ''
             });
         }
         setIsModalOpen(true);
@@ -96,6 +101,14 @@ export default function ManageDoctors() {
                 return;
             }
 
+            const selectedDept = departments.find(d => String(d.department_id) === String(formData.department_id));
+            const isLabDoctor = selectedDept && selectedDept.department_name === 'Lab Doctor';
+
+            if (isLabDoctor && !formData.lab_specialty) {
+                toast.error('Please select a Lab Specialty');
+                return;
+            }
+
             const personData = {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
@@ -103,7 +116,8 @@ export default function ManageDoctors() {
                 phone_number: formData.phone_number,
                 address: formData.address,
                 department_id: formData.department_id,
-                role: 'doctor',
+                role: isLabDoctor ? 'lab_doctor' : 'doctor',
+                lab_specialty: isLabDoctor ? formData.lab_specialty : null,
                 ...(formData.password && { password: formData.password }) // Only include password if provided
             };
 
@@ -160,7 +174,10 @@ export default function ManageDoctors() {
 
     const columns = [
         { header: 'Name', render: (row) => `${row.first_name} ${row.last_name}` },
-        { header: 'Specialization', accessor: 'specialization' },
+        {
+            header: 'Specialization/Specialty',
+            render: (row) => row.lab_specialty ? `Lab (${row.lab_specialty})` : row.specialization || 'N/A'
+        },
         { header: 'Department', render: (row) => row.department_name || 'N/A' },
         { header: 'Office', accessor: 'office_no' },
         { header: 'Phone', accessor: 'phone_number' },
@@ -270,6 +287,22 @@ export default function ManageDoctors() {
                                 ))}
                             </select>
                         </div>
+
+                        {departments.find(d => String(d.department_id) === String(formData.department_id))?.department_name === 'Lab Doctor' && (
+                            <div className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-600">Lab Specialty</label>
+                                <select
+                                    className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30 font-semibold"
+                                    value={formData.lab_specialty}
+                                    onChange={(e) => setFormData({ ...formData, lab_specialty: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select Specialty</option>
+                                    <option value="ultrasound">Ultrasound Specialist</option>
+                                    <option value="other">Standard Lab (Other)</option>
+                                </select>
+                            </div>
+                        )}
 
                         <Input
                             label="Office Number"

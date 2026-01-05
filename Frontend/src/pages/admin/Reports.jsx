@@ -170,11 +170,11 @@ export default function Reports() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Daily Reports</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Generate Reports</h1>
                     <p className="text-gray-500 mt-1">Export clinic data for specific dates</p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200 min-w-[300px]">
+                <div className="hidden">
                     <EthiopianDatePicker
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
@@ -221,7 +221,7 @@ export default function Reports() {
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
-                        <select
+                        {/* <select
                             value={reportMonth}
                             onChange={(e) => setReportMonth(e.target.value)}
                             className="p-2 border rounded-md"
@@ -238,7 +238,7 @@ export default function Reports() {
                             {[2023, 2024, 2025, 2026].map(y => (
                                 <option key={y} value={y}>{y}</option>
                             ))}
-                        </select>
+                        </select> */}
 
                         <div className="flex gap-2">
                             <button

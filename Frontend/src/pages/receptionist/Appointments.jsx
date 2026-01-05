@@ -12,7 +12,7 @@ import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
-import { formatDateTime, formatForAPI } from '../../utils/helpers';
+import { formatDateTime, formatDate, formatForAPI } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 export default function Appointments() {
@@ -31,7 +31,6 @@ export default function Appointments() {
     patient_id: '',
     doctor_id: '',
     appointment_date: '',
-    appointment_time: '',
     reason: '',
     status: 'scheduled'
   });
@@ -81,7 +80,6 @@ export default function Appointments() {
       card_id: '',
       doctor_id: '',
       appointment_date: new Date().toISOString().split('T')[0],
-      appointment_time: '',
       reason: '',
       status: 'scheduled'
     });
@@ -90,12 +88,10 @@ export default function Appointments() {
 
   const handleEdit = (appointment) => {
     setCurrentAppointment(appointment);
-    const dateDate = new Date(appointment.appointment_start_time);
     setFormData({
       card_id: appointment.card_id,
       doctor_id: appointment.doctor_id,
-      appointment_date: formatForAPI(dateDate),
-      appointment_time: dateDate.toTimeString().slice(0, 5),
+      appointment_date: appointment.appointment_date ? String(appointment.appointment_date).split('T')[0] : '',
       reason: appointment.reason || '',
       status: appointment.status
     });
@@ -105,13 +101,11 @@ export default function Appointments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const dateTime = `${formData.appointment_date}T${formData.appointment_time}:00`;
       const payload = {
         card_id: formData.card_id,
         doctor_id: formData.doctor_id,
-        appointment_start_time: dateTime,
-        appointment_end_time: dateTime, // Assuming 1 hr or same for now
-        reason: formData.reason, // Schema check: usually 'reason' or similar
+        appointment_date: formData.appointment_date,
+        reason: formData.reason,
         status: formData.status
       };
 
@@ -128,7 +122,7 @@ export default function Appointments() {
       fetchAppointments();
     } catch (error) {
       console.error('Error saving appointment:', error);
-      toast.error('Failed to save appointment');
+      toast.error(error.response?.data?.message || 'Failed to save appointment');
     }
   };
 
@@ -141,7 +135,7 @@ export default function Appointments() {
     { header: 'ID', accessor: 'appointment_id' },
     { header: 'Patient', render: (row) => `${row.FirstName || ''} ${row.Father_Name || ''}` },
     { header: 'Doctor', render: (row) => `Dr. ${row.doctor_first_name || ''} ${row.doctor_last_name || ''}` },
-    { header: 'Date & Time', render: (row) => formatDateTime(row.appointment_start_time) },
+    { header: 'Date', render: (row) => formatDate(row.appointment_date) },
     {
       header: 'Status', render: (row) => (
         <span className={`px-2 py-1 rounded text-xs font-medium ${row.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
@@ -217,19 +211,11 @@ export default function Appointments() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div>
             <EthiopianDatePicker
               label="Date"
               value={formData.appointment_date}
               onChange={(e) => setFormData(prev => ({ ...prev, appointment_date: e.target.value }))}
-              required
-            />
-            <Input
-              label="Time"
-              type="time"
-              name="appointment_time"
-              value={formData.appointment_time}
-              onChange={handleChange}
               required
             />
           </div>
