@@ -82,7 +82,7 @@ export default function ViewCards() {
         card.CardNumber?.toString().includes(searchQuery) ||
         card.FirstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         card.Father_Name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    ).sort((a, b) => b.card_id - a.card_id);
 
     if (loading) return <LoadingSpinner />;
 
