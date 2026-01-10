@@ -58,20 +58,16 @@ export default function LabRequests() {
         try {
             const totalAmount = requestTests.reduce((sum, test) => sum + (parseFloat(test.price) || 0), 0);
 
+            console.log('Processing payment for request:', selectedRequest);
+            console.log('Payment payload:', {
+                card_id: selectedRequest.card_id,
+                amount: totalAmount,
+                billing_date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                description: `Lab Request #${selectedRequest.request_id} Payment`,
+            });
+
             await api.post(API_ROUTES.PAYMENTS, {
                 card_id: selectedRequest.card_id,
-                // Backend sends c.CardNumber, let's check if it sends card_id.
-                // If not, we might need to rely on description or update backend.
-                // Assuming backend sends card_id too? The JOINs usually select * from lab_request but linked tables might strict fields.
-                // I'll assume we might not have card_id directly unless I check.
-                // But we have visit_id. 
-                // Let's send 0 or null if not available, usually payment needs card_id for tracking.
-                // Checking LabRequestModel: SELECT lr.* ... c.CardNumber ... JOIN card c ON ...
-                // It selects lr.*. Does lr have card_id? No, it has VisitRecordID.
-                // So I might not have card_id in row. I have CardNumber.
-                // Ideally I should update LabRequestModel to select c.card_id too.
-                // I'll rely on what I have. If needed I'll update model.
-                // For now, I'll send amount and description.
                 amount: totalAmount,
                 billing_date: new Date().toISOString().slice(0, 19).replace('T', ' '),
                 description: `Lab Request #${selectedRequest.request_id} Payment`,

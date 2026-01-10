@@ -66,12 +66,20 @@ export default function UltrasoundViewModal({ isOpen, onClose, request }) {
                                 <div key={idx} className="border-l-4 border-purple-400 pl-4 py-1">
                                     <h4 className="font-bold text-sm text-purple-700 uppercase tracking-wider mb-2">{finding.title}</h4>
                                     <div className="space-y-1">
-                                        {finding.descriptions.map((desc, dIdx) => (
-                                            <div key={dIdx} className="flex items-start gap-2 text-gray-700">
-                                                <span className="mt-2 w-1.5 h-1.5 bg-gray-300 rounded-full flex-shrink-0" />
-                                                <p className="text-sm leading-relaxed">{desc}</p>
-                                            </div>
-                                        ))}
+                                        {finding.descriptions.map((desc, dIdx) => {
+                                            let content = desc;
+                                            if (typeof desc === 'object' && desc !== null) {
+                                                // Handle object description (e.g. { finding: '...' })
+                                                if (desc.finding) content = desc.finding;
+                                                else content = Object.entries(desc).map(([k, v]) => `${k}: ${v}`).join(', ');
+                                            }
+                                            return (
+                                                <div key={dIdx} className="flex items-start gap-2 text-gray-700">
+                                                    <span className="mt-2 w-1.5 h-1.5 bg-gray-300 rounded-full flex-shrink-0" />
+                                                    <p className="text-sm leading-relaxed">{content}</p>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             ))}

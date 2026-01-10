@@ -4,8 +4,12 @@ class PaymentController {
     async createPayment(req, res) {
         try {
             const { card_id, amount, billing_date } = req.body;
-            if (!card_id || !amount || !billing_date) {
-                return res.status(400).json({ error: 'Missing required fields' });
+            if (!card_id || amount === undefined || amount === null || !billing_date) {
+                const missing = [];
+                if (!card_id) missing.push('card_id');
+                if (amount === undefined || amount === null) missing.push('amount');
+                if (!billing_date) missing.push('billing_date');
+                return res.status(400).json({ error: 'Missing required fields', missing, received: req.body });
             }
             const result = await Payment.create(req.body);
             res.status(201).json({ message: 'Payment created successfully', payment_id: result });
