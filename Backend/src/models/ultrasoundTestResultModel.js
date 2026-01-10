@@ -22,11 +22,17 @@ class UltrasoundTestResult {
 
     static async findByRequestId(requestId) {
         const [rows] = await db.execute(
-            'SELECT * FROM ultrasound_test_results WHERE request_id = ? ORDER BY id ASC',
+            `SELECT ur.*, alt.test_name 
+             FROM ultrasound_test_results ur 
+             LEFT JOIN available_lab_tests alt ON ur.test_id = alt.test_id 
+             WHERE ur.request_id = ? 
+             ORDER BY ur.id ASC`,
             [requestId]
         );
         return rows.map(row => {
             const result = new UltrasoundTestResult(row);
+            // Manually add test_name since it's not in the base model constructor
+            result.test_name = row.test_name;
             if (typeof result.description === 'string') {
                 try {
                     result.description = JSON.parse(result.description);

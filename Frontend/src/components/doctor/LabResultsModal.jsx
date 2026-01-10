@@ -83,13 +83,13 @@ export default function LabResultsModal({ isOpen, onClose, labRequest, labResult
                     {/* Test Results */}
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Test Results</h3>
-                        {!labResults || labResults.length === 0 ? (
+                        {!labResults || labResults.filter(r => r.TestCategory !== 'Ultrasound').length === 0 ? (
                             <p className="text-gray-500 text-center py-8">
                                 No test results available yet
                             </p>
                         ) : (
                             <div className="space-y-4">
-                                {labResults.map((result, index) => {
+                                {labResults.filter(r => r.TestCategory !== 'Ultrasound').map((result, index) => {
                                     // Debug: Log all values
                                     console.log('=== Lab Result Debug ===');
                                     console.log('Test:', result.test_name);

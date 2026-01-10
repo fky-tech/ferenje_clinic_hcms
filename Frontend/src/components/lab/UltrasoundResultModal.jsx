@@ -13,6 +13,7 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
     const [submitting, setSubmitting] = useState(false);
     const [requestTests, setRequestTests] = useState([]);
     const [selectedTest, setSelectedTest] = useState(null);
+    const [editingFindingIndex, setEditingFindingIndex] = useState(null);
     const { addNotification } = useNotifications();
 
     useEffect(() => {
@@ -58,9 +59,11 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                 }));
                 setFindings(loadedFindings);
                 setConclusion(testResults[0].conclusion || '');
+                setEditingFindingIndex(null); // Reset editing state when loading new test
             } else {
-                setFindings([{ title: test.test_name || '', descriptions: [''] }]);
+                setFindings([{ title: '', descriptions: [''] }]);
                 setConclusion('');
+                setEditingFindingIndex(0); // Automatically start editing the first (new) finding
             }
         } catch (error) {
             console.error('Error loading test results:', error);
@@ -70,13 +73,20 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
     };
 
     const addFindingBox = () => {
+        const newIndex = findings.length;
         setFindings([...findings, { title: '', descriptions: [''] }]);
+        setEditingFindingIndex(newIndex);
     };
 
     const removeFindingBox = (index) => {
         if (findings.length === 1) return;
         const updated = findings.filter((_, i) => i !== index);
         setFindings(updated);
+        if (editingFindingIndex === index) {
+            setEditingFindingIndex(null); // If the edited box is removed, close editor
+        } else if (editingFindingIndex > index) {
+            setEditingFindingIndex(editingFindingIndex - 1); // Adjust index if a preceding box was removed
+        }
     };
 
     const handleTitleChange = (index, value) => {
@@ -102,6 +112,8 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
         const updated = [...findings];
         updated[findingIndex].descriptions[bulletIndex] = value;
         setFindings(updated);
+        // If we are editing a newly created one, we might want to ensure the state reflects it,
+        // but setFindings is enough.
     };
 
     const handleSubmit = async () => {
@@ -207,93 +219,126 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                             </div>
                         ) : (
                             <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
-                                <button
-                                    onClick={() => setSelectedTest(null)}
-                                    className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center mb-2"
-                                >
-                                    ← Back to Study List
-                                </button>
-                                {findings.map((finding, fIndex) => (
-                                    <div key={fIndex} className="p-4 border border-purple-100 rounded-xl bg-white shadow-sm relative group">
-                                        <button
-                                            onClick={() => removeFindingBox(fIndex)}
-                                            className="absolute -top-2 -right-2 p-1.5 bg-red-100 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200"
-                                            title="Remove Section"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                <div className="space-y-6">
+                                    <button
+                                        onClick={() => setSelectedTest(null)}
+                                        className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center mb-2"
+                                    >
+                                        ← Back to Study List
+                                    </button>
 
+                                    {editingFindingIndex === null ? (
                                         <div className="space-y-4">
-                                            <div>
-                                                <label className="block text-xs font-bold text-purple-600 mb-1 uppercase tracking-wider">Title / Organ</label>
-                                                <input
-                                                    type="text"
-                                                    value={finding.title}
-                                                    onChange={(e) => handleTitleChange(fIndex, e.target.value)}
-                                                    className="w-full px-4 py-2 bg-purple-50/30 border border-purple-100 rounded-lg focus:ring-2 focus:ring-purple-500 font-medium"
-                                                    placeholder="e.g. LIVER, GALLBLADDER, PANCREAS"
-                                                />
+                                            <p className="text-sm text-gray-600 font-medium">Recorded Findings:</p>
+                                            <div className="grid gap-3">
+                                                {findings.map((finding, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <div
+                                                            onClick={() => setEditingFindingIndex(idx)}
+                                                            className="flex-1 p-4 border border-purple-100 rounded-xl bg-white hover:bg-purple-50 cursor-pointer transition-all flex justify-between items-center shadow-sm group"
+                                                        >
+                                                            <span className="font-bold text-gray-800 group-hover:text-purple-700 uppercase tracking-wide">
+                                                                {finding.title || '(Untitled Finding)'}
+                                                            </span>
+                                                            <svg className="w-5 h-5 text-gray-400 group-hover:text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                            </svg>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => removeFindingBox(idx)}
+                                                            className="p-4 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 border border-red-100 transition-colors"
+                                                            title="Delete Finding"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+
+                                                <button
+                                                    onClick={addFindingBox}
+                                                    className="w-full flex items-center justify-center px-4 py-4 bg-white border-2 border-dashed border-purple-200 text-purple-600 rounded-xl hover:bg-purple-50 hover:border-purple-300 transition-all font-bold"
+                                                >
+                                                    <Plus className="w-5 h-5 mr-2" /> Add New Finding
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="border border-purple-100 rounded-xl bg-white shadow-sm p-4 relative animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                            <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                                                <h4 className="font-bold text-purple-700 uppercase tracking-wider text-sm">
+                                                    Editing Finding
+                                                </h4>
+                                                <Button size="sm" variant="secondary" onClick={() => setEditingFindingIndex(null)}>
+                                                    Done / Minimize
+                                                </Button>
                                             </div>
 
-                                            <div>
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Findings / Description</label>
-                                                    <button
-                                                        onClick={() => addBulletPoint(fIndex)}
-                                                        className="flex items-center text-[10px] font-bold text-purple-600 hover:text-purple-800"
-                                                    >
-                                                        <ListPlus className="w-3 h-3 mr-1" /> Add Point
-                                                    </button>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-purple-600 mb-1 uppercase tracking-wider">Title / Organ</label>
+                                                    <input
+                                                        type="text"
+                                                        value={findings[editingFindingIndex].title}
+                                                        onChange={(e) => handleTitleChange(editingFindingIndex, e.target.value)}
+                                                        className="w-full px-4 py-2 bg-purple-50/30 border border-purple-100 rounded-lg focus:ring-2 focus:ring-purple-500 font-medium"
+                                                        placeholder="e.g. LIVER, GALLBLADDER, PANCREAS"
+                                                        autoFocus
+                                                    />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    {finding.descriptions.map((desc, dIndex) => (
-                                                        <div key={dIndex} className="flex items-start gap-2 group/bullet">
-                                                            <span className="mt-2.5 w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0" />
-                                                            <textarea
-                                                                value={desc}
-                                                                onChange={(e) => handleDescriptionChange(fIndex, dIndex, e.target.value)}
-                                                                className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg focus:ring-1 focus:ring-purple-400 text-sm resize-none"
-                                                                placeholder="Enter observation..."
-                                                                rows={1}
-                                                            />
-                                                            <button
-                                                                onClick={() => removeBulletPoint(fIndex, dIndex)}
-                                                                className="mt-1.5 p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover/bullet:opacity-100"
-                                                            >
-                                                                <Trash2 className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
+
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Findings / Description</label>
+                                                        <button
+                                                            onClick={() => addBulletPoint(editingFindingIndex)}
+                                                            className="flex items-center text-[10px] font-bold text-purple-600 hover:text-purple-800"
+                                                        >
+                                                            <ListPlus className="w-3 h-3 mr-1" /> Add Point
+                                                        </button>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        {findings[editingFindingIndex].descriptions.map((desc, dIndex) => (
+                                                            <div key={dIndex} className="flex items-start gap-2 group/bullet">
+                                                                <span className="mt-2.5 w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0" />
+                                                                <textarea
+                                                                    value={desc}
+                                                                    onChange={(e) => handleDescriptionChange(editingFindingIndex, dIndex, e.target.value)}
+                                                                    className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg focus:ring-1 focus:ring-purple-400 text-sm resize-none"
+                                                                    placeholder="Enter observation..."
+                                                                    rows={1}
+                                                                />
+                                                                <button
+                                                                    onClick={() => removeBulletPoint(editingFindingIndex, dIndex)}
+                                                                    className="mt-1.5 p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover/bullet:opacity-100"
+                                                                >
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
+                                    )}
+
+                                    <div className="pt-4 border-t border-gray-100">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-widest">Conclusion / Impression</label>
+                                        <textarea
+                                            value={conclusion}
+                                            onChange={(e) => setConclusion(e.target.value)}
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 font-medium"
+                                            placeholder="Enter final clinical impression..."
+                                            rows={4}
+                                        />
                                     </div>
-                                ))}
-
-                                <div className="flex justify-center py-2">
-                                    <button
-                                        onClick={addFindingBox}
-                                        className="flex items-center px-4 py-2 bg-white border-2 border-dashed border-purple-200 text-purple-600 rounded-xl hover:bg-purple-50 hover:border-purple-300 transition-all font-semibold"
-                                    >
-                                        <Plus className="w-4 h-4 mr-2" /> Add More Box
-                                    </button>
-                                </div>
-
-                                <div className="pt-4 border-t border-gray-100">
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-widest">Conclusion / Impression</label>
-                                    <textarea
-                                        value={conclusion}
-                                        onChange={(e) => setConclusion(e.target.value)}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 font-medium"
-                                        placeholder="Enter final clinical impression..."
-                                        rows={4}
-                                    />
                                 </div>
                             </div>
                         )}
                     </>
                 )}
-
                 <div className="flex justify-end space-x-3 pt-4 border-t sticky bottom-0 bg-white">
                     <Button variant="secondary" onClick={onClose} disabled={submitting}>Cancel</Button>
                     {selectedTest && (

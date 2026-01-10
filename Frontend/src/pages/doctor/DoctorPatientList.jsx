@@ -49,7 +49,7 @@ export default function DoctorPatientList() {
             card.Father_Name?.toLowerCase().includes(searchLower) ||
             card.PhoneNo?.includes(searchTerm)
         );
-    });
+    }).sort((a, b) => b.card_id - a.card_id);
 
     const columns = [
         { header: 'Card No', accessor: 'CardNumber' },

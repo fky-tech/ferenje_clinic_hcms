@@ -300,7 +300,7 @@ export default function FamilyPlanningModal({ isOpen, onClose, cardId, appointme
                         selectedHistoryVisit ? (
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center border-b pb-2">
-                                    <h3 className="font-bold text-gray-900 text-lg">Visit Details ({formatToEthiopian(selectedHistoryVisit.date_of_visit)})</h3>
+                                    <h3 className="font-bold text-gray-900 text-lg">Visit Details ({selectedHistoryVisit.date_of_visit ? formatToEthiopian(selectedHistoryVisit.date_of_visit) : 'No Date'})</h3>
                                     <Button size="sm" variant="secondary" onClick={() => setSelectedHistoryVisit(null)}>Back to History</Button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
