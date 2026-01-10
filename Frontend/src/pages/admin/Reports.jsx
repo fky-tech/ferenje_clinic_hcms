@@ -47,8 +47,39 @@ export default function Reports() {
             });
 
             if (response.data && response.data.length > 0) {
+                let exportData = response.data;
+
+                if (type === 'payments') {
+                    // Calculate Total
+                    const totalAmount = exportData.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
+                    // Add Total Row
+                    const totalRow = {
+                        payment_id: 'TOTAL',
+                        CardNumber: '',
+                        FirstName: '',
+                        Father_Name: '',
+                        amount: totalAmount.toFixed(2),
+                        payment_type: '',
+                        status: '',
+                        billing_date: ''
+                    };
+
+                    // Rename 'amount' key to 'Payment Fee' (or just map for CSV)
+                    // We'll map to a new structure for cleanup
+                    exportData = [...exportData, totalRow].map(item => ({
+                        'Payment ID': item.payment_id,
+                        'Card Number': item.CardNumber,
+                        'Patient Name': `${item.FirstName || ''} ${item.Father_Name || ''}`.trim(),
+                        'Payment Fee': item.amount, // Renaming amount to Payment Fee
+                        'Type': item.payment_type,
+                        'Status': item.status,
+                        'Date': item.billing_date ? new Date(item.billing_date).toLocaleDateString() : ''
+                    }));
+                }
+
                 const filename = `ferenje_${type}_report_${date}.csv`;
-                downloadCSV(response.data, filename);
+                downloadCSV(exportData, filename);
                 toast.success('Report downloaded successfully', { id: toastId });
             } else {
                 toast.error('No records found for this date', { id: toastId });

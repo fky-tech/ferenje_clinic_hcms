@@ -25,9 +25,10 @@ class AdminController {
             const [totalLabDoctorsRows] = await db.execute("SELECT COUNT(*) as count FROM person WHERE role = 'lab_doctor'");
             const totalLabDoctors = totalLabDoctorsRows[0].count;
 
-            // 4. Total Revenue (Sum of all completed payments)
+            // 4. Total Revenue (Sum of all completed payments TODAY)
             const [totalRevenueRows] = await db.execute(
-                "SELECT SUM(amount) as total FROM payment WHERE status = 'paid'"
+                "SELECT SUM(amount) as total FROM payment WHERE status = 'paid' AND DATE(billing_date) = ?",
+                [today]
             );
             const totalRevenue = totalRevenueRows[0].total || 0;
 
