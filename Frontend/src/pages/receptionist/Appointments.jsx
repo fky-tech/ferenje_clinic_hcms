@@ -49,7 +49,7 @@ export default function Appointments() {
   const fetchAppointments = async () => {
     try {
       const response = await api.get(API_ROUTES.APPOINTMENTS);
-      setAppointments(response.data.filter(a => a.status !== 'completed'));
+      setAppointments(response.data.filter(a => a.status !== 'no_show'));
     } catch (error) {
       console.error('Error fetching appointments:', error);
       // toast.error('Failed to load appointments');
@@ -139,10 +139,10 @@ export default function Appointments() {
     {
       header: 'Status', render: (row) => (
         <span className={`px-2 py-1 rounded text-xs font-medium ${row.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-          row.status === 'completed' ? 'bg-green-100 text-green-800' :
+          row.status === 'no_show' ? 'bg-yellow-100 text-yellow-800' :
             'bg-red-100 text-red-800'
           }`}>
-          {row.status}
+          {row.status === 'no_show' ? 'No Show' : row.status}
         </span>
       )
     },
@@ -229,9 +229,8 @@ export default function Appointments() {
               className="input-field"
             >
               <option value="scheduled">Scheduled</option>
-              {/* <option value="completed">Completed</option> */}
               <option value="cancelled">Cancelled</option>
-              <option value="no-show">No Show</option>
+              <option value="no_show">No Show</option>
             </select>
           </div>
 

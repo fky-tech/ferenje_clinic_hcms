@@ -1,7 +1,10 @@
 // API Routes
 export const API_ROUTES = {
     // Auth
-    LOGIN: '/persons/email',
+    LOGIN: '/auth/login',
+    REFRESH_TOKEN: '/auth/refresh',
+    CHANGE_PASSWORD: '/auth/change-password',
+    GET_CURRENT_USER: '/auth/me',
 
     // Admin
     ADMIN: {
@@ -82,7 +85,7 @@ export const CARD_STATUS = {
 // Appointment Status
 export const APPOINTMENT_STATUS = {
     SCHEDULED: 'scheduled',
-    COMPLETED: 'completed',
+    NO_SHOW: 'no_show',
     CANCELLED: 'cancelled',
 };
 

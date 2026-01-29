@@ -1,4 +1,5 @@
 import db from '../config/db.js';
+import bcrypt from 'bcryptjs';
 
 class Person {
     constructor(data = {}) {
@@ -28,9 +29,13 @@ class Person {
     // Static method - Create
     static async create(personData) {
         const { first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty } = personData;
+
+        // Hash password before storing
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const [result] = await db.execute(
             'INSERT INTO person (first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty]
+            [first_name, last_name, email, hashedPassword, address, phone_number, department_id, role, lab_specialty]
         );
         return result.insertId;
     }
@@ -71,9 +76,16 @@ class Person {
     // Static method - Update
     static async update(id, personData) {
         const { first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty } = personData;
+
+        // Hash password if it's being updated and is not already hashed
+        let finalPassword = password;
+        if (password && !password.startsWith('$2a$') && !password.startsWith('$2b$')) {
+            finalPassword = await bcrypt.hash(password, 10);
+        }
+
         const [result] = await db.execute(
             'UPDATE person SET first_name = ?, last_name = ?, email = ?, password = ?, address = ?, phone_number = ?, department_id = ?, role = ?, lab_specialty = ? WHERE person_id = ?',
-            [first_name, last_name, email, password, address, phone_number, department_id, role, lab_specialty, id]
+            [first_name, last_name, email, finalPassword, address, phone_number, department_id, role, lab_specialty, id]
         );
         return result.affectedRows;
     }

@@ -11,11 +11,14 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
     (config) => {
-        const user = localStorage.getItem('user');
-        if (user) {
-            // Add any auth headers if needed in future
-            config.headers['X-User'] = user;
+        // Get JWT token from localStorage
+        const token = localStorage.getItem('authToken');
+
+        if (token) {
+            // Add Authorization header with Bearer token
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
+
         return config;
     },
     (error) => {
@@ -31,12 +34,23 @@ api.interceptors.response.use(
     (error) => {
         if (error.response) {
             const message = error.response.data?.error || error.response.data?.message || 'An error occurred';
-            toast.error(message);
 
-            // Handle unauthorized
-            if (error.response.status === 401) {
+            // Don't show toast for login errors (handled in Login component)
+            if (!error.config.url?.includes('/auth/login')) {
+                toast.error(message);
+            }
+
+            // Handle unauthorized or token expiration
+            if (error.response.status === 401 || error.response.status === 403) {
+                // Clear auth data
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('refreshToken');
                 localStorage.removeItem('user');
-                window.location.href = '/login';
+
+                // Redirect to login if not already there
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
             }
         } else if (error.request) {
             toast.error('No response from server. Please check your connection.');

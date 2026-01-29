@@ -189,7 +189,7 @@ export default function ManageQueue() {
                     title={`Queue for Dr. ${doctors.find(d => d.doctor_id === selectedDoctorId)?.last_name}`}
                     icon={Users}
                 >
-                    <Table columns={columns} data={filteredQueues.filter(q => q.status !== 'completed')} />
+                    <Table columns={columns} data={filteredQueues.filter(q => q.status !== 'no_show')} />
                 </Card>
             ) : (
                 <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-12 text-center text-gray-500">

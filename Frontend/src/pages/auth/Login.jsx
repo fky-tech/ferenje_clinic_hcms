@@ -44,29 +44,17 @@ export default function Login() {
 
         setLoading(true);
         try {
-            // Get user by email
-            const response = await api.get(`${API_ROUTES.LOGIN}/${formData.email}`);
-            const user = response.data;
+            // Login with JWT authentication
+            const response = await api.post(API_ROUTES.LOGIN, {
+                email: formData.email,
+                password: formData.password
+            });
 
-            // Check if user exists
-            if (!user) {
-                setErrors(prev => ({ ...prev, email: 'Invalid email or password' }));
-                return;
-            }
+            const { token, refreshToken, user } = response.data;
 
-            // Check role access
-            if (user.role !== 'receptionist' && user.role !== 'doctor' && user.role !== 'lab_doctor' && user.role !== 'admin') {
-                toast.error('Access denied. Invalid role.');
-                return;
-            }
-
-            // Check password (plain text as per requirements)
-            if (user.password !== formData.password) {
-                setErrors(prev => ({ ...prev, password: 'Invalid email or password' }));
-                return;
-            }
-
-            // Store user data
+            // Store authentication data
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('refreshToken', refreshToken);
             setStoredUser(user);
 
             toast.success(`Welcome back, ${user.first_name}!`);
@@ -85,8 +73,15 @@ export default function Login() {
             }
         } catch (error) {
             console.error('Login error:', error);
-            if (error.response?.status === 404) {
-                setErrors(prev => ({ ...prev, email: 'Invalid email or password' }));
+            if (error.response?.status === 401) {
+                setErrors({ email: 'Invalid email or password' });
+            } else if (error.response?.data?.errors) {
+                // Handle validation errors from backend
+                const backendErrors = {};
+                error.response.data.errors.forEach(err => {
+                    backendErrors[err.field] = err.message;
+                });
+                setErrors(backendErrors);
             }
         } finally {
             setLoading(false);
@@ -96,25 +91,25 @@ export default function Login() {
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-[#f8fafc] font-sans" >
             {/* Left Side: Branding/Illustration Section */}
-            <div className="hidden md:flex md:w-1/2 items-center justify-center p-12 text-white relative overflow-hidden"  style={{
-        backgroundImage: "url('/images/loginbg3.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "",
-      }}>
-             {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+            <div className="hidden md:flex md:w-1/2 items-center justify-center p-12 text-white relative overflow-hidden" style={{
+                backgroundImage: "url('/images/loginbg3.jpg')",
+                backgroundSize: "cover",
+                backgroundPosition: "",
+            }}>
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
-      {/* Top Branding */}
-      <div className="absolute top-6 left-14 z-10 flex items-center gap-1">
-        <div className="w-14 h-12  rounded-full overflow-hidden">
-          <img
-            src="/images/logo.png"
-            alt="Ferenjie Logo"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <span className="text-lg font-semibold tracking-wide">FERENJE</span>
-            </div> 
+                {/* Top Branding */}
+                <div className="absolute top-6 left-14 z-10 flex items-center gap-1">
+                    <div className="w-14 h-12  rounded-full overflow-hidden">
+                        <img
+                            src="/images/logo.png"
+                            alt="Ferenjie Logo"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <span className="text-lg font-semibold tracking-wide">FERENJE</span>
+                </div>
                 {/* <div className="absolute top-0 left-0 w-full h-full opacity-10">
                     <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <path d="M0 0 L100 100 L0 100 Z" fill="currentColor" />
@@ -128,13 +123,13 @@ export default function Login() {
                     <p className="text-blue-100 text-sm opacity-90">
                         Manage patient records, appointments, and laboratory results with our comprehensive HCMS portal.
                     </p>
-                <div className="flex gap-2 mt-6">
-                <span className="w-6 h-2 rounded-full bg-white/50" />
-                <span className="w-8 h-2 rounded-full bg-white/70" />
-                <span className="w-20 h-2 rounded-full bg-white/90" />
+                    <div className="flex gap-2 mt-6">
+                        <span className="w-6 h-2 rounded-full bg-white/50" />
+                        <span className="w-8 h-2 rounded-full bg-white/70" />
+                        <span className="w-20 h-2 rounded-full bg-white/90" />
+                    </div>
                 </div>
-                </div>
-                
+
             </div>
 
             {/* Right Side: Login Form Section */}
@@ -172,7 +167,7 @@ export default function Login() {
                                 placeholder="••••••••"
                                 className="bg-white border-gray-500 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
                             />
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
@@ -224,7 +219,7 @@ export default function Login() {
 
                     <div className="mt-10 pt-8 border-t border-gray-100 text-center">
                         <p className="text-sm text-gray-400 font-medium">
-                            For access issues, please 
+                            For access issues, please
                             <a href="#" className="ml-1 text-gray-600 hover:text-gray-700 hover:underline font-bold transition-colors">Contact Admin</a>
                         </p>
                     </div>
