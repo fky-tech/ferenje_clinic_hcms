@@ -272,6 +272,8 @@ export default function DoctorDashboard() {
                     icon={Users}
                     gradient="from-emerald-500 to-emerald-600"
                     hoverGradient="from-emerald-600 to-emerald-700"
+                    onClick={() => navigate('/doctor/patients', { state: { filter: 'today' } })}
+                    clickable
                 />
             </div>
 

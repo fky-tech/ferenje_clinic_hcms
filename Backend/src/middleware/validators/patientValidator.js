@@ -35,7 +35,7 @@ export const validatePatient = [
         .escape(),
 
     body('Father_Name')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 100 })
         .withMessage('Father name must not exceed 100 characters')
@@ -44,7 +44,7 @@ export const validatePatient = [
         .escape(),
 
     body('GrandFather_Name')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 100 })
         .withMessage('Grandfather name must not exceed 100 characters')
@@ -53,43 +53,43 @@ export const validatePatient = [
         .escape(),
 
     body('DateOfBirth')
-        .optional()
+        .optional({ checkFalsy: true })
         .isISO8601()
         .withMessage('Invalid date format. Use YYYY-MM-DD'),
 
     body('Age')
-        .optional()
+        .optional({ checkFalsy: true })
         .isInt({ min: 0, max: 150 })
         .withMessage('Age must be between 0 and 150'),
 
     body('Sex')
-        .optional()
+        .optional({ checkFalsy: true })
         .isIn(['Male', 'Female', 'Other'])
         .withMessage('Sex must be one of: Male, Female, Other'),
 
     body('Region')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 100 })
         .withMessage('Region must not exceed 100 characters')
         .escape(),
 
     body('Wereda')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 100 })
         .withMessage('Wereda must not exceed 100 characters')
         .escape(),
 
     body('HouseNo')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 50 })
         .withMessage('House number must not exceed 50 characters')
         .escape(),
 
     body('PhoneNo')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .matches(/^[0-9+\-() ]+$/)
         .withMessage('Invalid phone number format')

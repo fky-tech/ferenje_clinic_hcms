@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import api from '../../api/axios';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import LabResultModal from '../../components/lab/LabResultModal';
+import UltrasoundResultModal from '../../components/lab/UltrasoundResultModal';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -17,6 +19,9 @@ export default function Dashboard() {
         totalAvailableTests: 0
     });
     const [recentRequests, setRecentRequests] = useState([]);
+    const [selectedRequest, setSelectedRequest] = useState(null);
+    const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+    const [isUltrasoundModalOpen, setIsUltrasoundModalOpen] = useState(false);
 
     useEffect(() => {
         const updateTime = () => {
@@ -105,6 +110,24 @@ export default function Dashboard() {
             });
         } catch {
             return '';
+        }
+    };
+
+    const handleOpenResultModal = (request) => {
+        setSelectedRequest(request);
+        if (request.ultrasound_tests_count > 0 && request.standard_tests_count === 0) {
+            setIsUltrasoundModalOpen(true);
+        } else if (request.ultrasound_tests_count > 0 && request.standard_tests_count > 0) {
+            // Mixed request: Logic to choose? Defaulting to LabResultModal or asking user?
+            // For now, assuming distinct request types or favoring Ultrasound if strictly ultrasound.
+            // If mixed, LabResultModal might handle standard, but we might need a way to see both.
+            // Let's bias towards Ultrasound if it has it, or check the specific "Todays Ultrasound" behavior.
+
+            // Re-reading user request: "like it gets me in Todays ultrasound page".
+            // If I am an ultrasound tech, I want Ultrasound modal.
+            setIsUltrasoundModalOpen(true);
+        } else {
+            setIsResultModalOpen(true);
         }
     };
 
@@ -210,7 +233,7 @@ export default function Dashboard() {
                         Today's Requests
                     </h3>
                     <button
-                        onClick={() => navigate('/lab/requests')}
+                        onClick={() => navigate('/lab/todays-labs?filter=today')}
                         className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5"
                     >
                         All <ChevronRight size={12} />
@@ -220,11 +243,18 @@ export default function Dashboard() {
                 <div className="divide-y divide-gray-100">
                     {recentRequests.length > 0 ? (
                         recentRequests.slice(0, 3).map((request, index) => (
-                            <div key={request.request_id || index} className="p-2">
+                            <div
+                                key={request.request_id || index}
+                                onClick={() => handleOpenResultModal(request)}
+                                className="p-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                            >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className={`p-1.5 rounded ${getStatusColor(request.LabStatus)}`}>
-                                            {getStatusIcon(request.LabStatus)}
+                                            {request.ultrasound_tests_count > 0
+                                                ? <Activity size={14} />
+                                                : getStatusIcon(request.LabStatus)
+                                            }
                                         </div>
                                         <div>
                                             <p className="text-xs font-medium text-gray-800 truncate max-w-[120px]">
@@ -265,7 +295,7 @@ export default function Dashboard() {
                     </button>
 
                     <button
-                        onClick={() => navigate('/lab/labs')}
+                        onClick={() => navigate('/lab/todays-labs')}
                         className="bg-white p-2 rounded border border-gray-200 hover:bg-purple-50 hover:border-purple-200 transition text-center"
                     >
                         <FlaskConical size={14} className="text-purple-600 mx-auto mb-1" />
@@ -289,6 +319,29 @@ export default function Dashboard() {
                     </button> */}
                 </div>
             </div>
+            {selectedRequest && (
+                <LabResultModal
+                    isOpen={isResultModalOpen}
+                    onClose={() => {
+                        setIsResultModalOpen(false);
+                        setSelectedRequest(null);
+                    }}
+                    request={selectedRequest}
+                    onSuccess={fetchDashboardData}
+                />
+            )}
+
+            {selectedRequest && (
+                <UltrasoundResultModal
+                    isOpen={isUltrasoundModalOpen}
+                    onClose={() => {
+                        setIsUltrasoundModalOpen(false);
+                        setSelectedRequest(null);
+                    }}
+                    request={selectedRequest}
+                    onSuccess={fetchDashboardData}
+                />
+            )}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
 import Input from '../../components/common/Input';
@@ -7,25 +7,70 @@ import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
-import { useNavigate } from 'react-router-dom';
-import { getStoredUser } from '../../utils/helpers';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getStoredUser, isDateToday } from '../../utils/helpers';
 
 export default function DoctorPatientList() {
     const [cards, setCards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+    const [activeFilter, setActiveFilter] = useState(null);
+    const [todayPatientIds, setTodayPatientIds] = useState(new Set());
 
     useEffect(() => {
-        fetchCards();
-    }, []);
+        if (location.state?.filter === 'today') {
+            setActiveFilter('today');
+        }
+    }, [location.state]);
 
-    const fetchCards = async () => {
+    useEffect(() => {
+        fetchData();
+    }, [activeFilter]);
+
+    const fetchData = async () => {
+        setLoading(true);
         try {
-            const response = await api.get(API_ROUTES.CARDS);
-            setCards(response.data);
+            const doctorId = getStoredUser()?.person_id;
+            const promises = [api.get(API_ROUTES.CARDS)];
+
+            if (activeFilter === 'today') {
+                promises.push(api.get(API_ROUTES.APPOINTMENTS));
+                promises.push(api.get(API_ROUTES.QUEUES));
+            }
+
+            const results = await Promise.all(promises);
+            setCards(results[0].data);
+
+            if (activeFilter === 'today') {
+                const appointments = results[1].data;
+                const queues = results[2].data;
+                const today = new Date(); // Fallback if isDateToday checks strict equal types
+
+                const relevantIds = new Set();
+
+                // Filter appointments
+                appointments.forEach(appt => {
+                    if (appt.doctor_id == doctorId && isDateToday(appt.appointment_date)) {
+                        relevantIds.add(String(appt.card_id)); // Ensure string for consistency
+                    }
+                });
+
+                // Filter queues
+                queues.forEach(q => {
+                    if (q.doctor_id == doctorId && isDateToday(q.date)) {
+                        // Queue usually has card_id attached or we might need to match via patient
+                        // Check queue data structure from Dashboard or ManageQueue
+                        if (q.card_id) relevantIds.add(String(q.card_id));
+                    }
+                });
+
+                setTodayPatientIds(relevantIds);
+            }
+
         } catch (error) {
-            console.error('Error fetching cards:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
@@ -35,12 +80,22 @@ export default function DoctorPatientList() {
         navigate(`/doctor/patient/${card.card_id}`);
     };
 
+    const clearFilter = () => {
+        setActiveFilter(null);
+        navigate(location.pathname, { replace: true, state: {} });
+    };
+
     const doctorId = getStoredUser()?.person_id;
 
     const filteredCards = cards.filter(card => {
         const matchesDoctor = card.doctor_id == doctorId;
         const isActive = card.status === 'Active';
         if (!matchesDoctor || !isActive) return false;
+
+        // Apply Today Filter
+        if (activeFilter === 'today') {
+            if (!todayPatientIds.has(String(card.card_id))) return false;
+        }
 
         const searchLower = searchTerm.toLowerCase();
         return (
@@ -69,7 +124,16 @@ export default function DoctorPatientList() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900">My Patients</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-gray-900">
+                    {activeFilter === 'today' ? "Today's Patients" : "My Patients"}
+                </h1>
+                {activeFilter === 'today' && (
+                    <Button variant="secondary" onClick={clearFilter} className="flex items-center gap-2">
+                        <X size={16} /> Clear Filter
+                    </Button>
+                )}
+            </div>
 
             <Card>
                 <div className="mb-6">
@@ -80,7 +144,15 @@ export default function DoctorPatientList() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Table columns={columns} data={filteredCards} />
+                {filteredCards.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                        {activeFilter === 'today'
+                            ? "No patients found for today."
+                            : "No patients found matching your search."}
+                    </div>
+                ) : (
+                    <Table columns={columns} data={filteredCards} />
+                )}
             </Card>
         </div>
     );

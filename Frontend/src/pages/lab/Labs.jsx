@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Calendar, Search, ChevronDown, ChevronRight, FlaskConical, Filter } from 'lucide-react';
 import api from '../../api/axios';
 import { formatDateTime } from '../../utils/helpers';
@@ -8,6 +9,7 @@ import Button from '../../components/common/Button';
 import LabResultModal from '../../components/lab/LabResultModal';
 
 export default function Labs() {
+    const [searchParams] = useSearchParams();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,6 +17,12 @@ export default function Labs() {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isResultModalOpen, setIsResultModalOpen] = useState(false);
     const [expandedCards, setExpandedCards] = useState({});
+
+    useEffect(() => {
+        if (searchParams.get('filter') === 'today') {
+            setFilterDate(new Date().toISOString().split('T')[0]);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         fetchRequests();
