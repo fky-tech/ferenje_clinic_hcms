@@ -154,30 +154,36 @@ export default function RegisterPatient() {
 
     setLoading(true);
     try {
+      // Clean data: convert empty strings to null for optional fields
+      const cleanData = Object.entries(formData).reduce((acc, [key, value]) => {
+        acc[key] = value === "" ? null : value;
+        return acc;
+      }, {});
+
       // 1. Create patient
       await api.post(API_ROUTES.PATIENTS, {
-        patient_id: formData.patient_id,
-        FirstName: formData.FirstName,
-        Father_Name: formData.Father_Name,
-        GrandFather_Name: formData.GrandFather_Name,
-        DateOfBirth: formData.DateOfBirth,
-        Age: formData.Age ? parseInt(formData.Age) : null,
-        Sex: formData.Sex,
-        Region: formData.Region,
-        Wereda: formData.Wereda,
-        HouseNo: formData.HouseNo,
-        PhoneNo: formData.PhoneNo,
-        date_registered: formData.date_registered,
-        doctor_id: formData.doctor_id,
+        patient_id: cleanData.patient_id,
+        FirstName: cleanData.FirstName,
+        Father_Name: cleanData.Father_Name,
+        GrandFather_Name: cleanData.GrandFather_Name,
+        DateOfBirth: cleanData.DateOfBirth,
+        Age: cleanData.Age ? parseInt(cleanData.Age) : null,
+        Sex: cleanData.Sex,
+        Region: cleanData.Region,
+        Wereda: cleanData.Wereda,
+        HouseNo: cleanData.HouseNo,
+        PhoneNo: cleanData.PhoneNo,
+        date_registered: cleanData.date_registered,
+        doctor_id: cleanData.doctor_id,
       });
 
       // 2. Create card
       const cardResponse = await api.post(API_ROUTES.CARDS, {
-        patient_id: formData.patient_id,
-        CardNumber: formData.CardNumber,
+        patient_id: cleanData.patient_id,
+        CardNumber: cleanData.CardNumber,
         status: CARD_STATUS.ACTIVE,
-        issue_date: formData.issue_date,
-        expire_date: formData.expire_date,
+        issue_date: cleanData.issue_date,
+        expire_date: cleanData.expire_date,
       });
 
       // Capture card_id from response. Assuming backend returns { card_id: ... } or { insertId: ... }
@@ -187,7 +193,7 @@ export default function RegisterPatient() {
       // 3. Record payment
       await api.post(API_ROUTES.PAYMENTS, {
         card_id: newCardId,
-        amount: formData.amount,
+        amount: cleanData.amount,
         billing_date: new Date().toISOString().slice(0, 19).replace("T", " "), // MySQL Format
         description: "New patient registration and card fee",
         payment_type: PAYMENT_TYPES.CARD_REGISTRATION,
@@ -223,7 +229,14 @@ export default function RegisterPatient() {
       });
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error("Registration failed");
+      const backendError = error.response?.data?.error || error.response?.data?.message;
+      const validationDetails = error.response?.data?.errors?.map(e => e.message).join(', ');
+
+      toast.error(
+        validationDetails
+          ? `Validation Failed: ${validationDetails}`
+          : backendError || "Registration failed"
+      );
     } finally {
       setLoading(false);
     }
