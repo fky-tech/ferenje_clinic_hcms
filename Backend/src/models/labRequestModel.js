@@ -22,6 +22,8 @@ class LabRequest {
         this.standard_results_count = data.standard_results_count || 0;
         this.ultrasound_tests_count = data.ultrasound_tests_count || 0;
         this.ultrasound_results_count = data.ultrasound_results_count || 0;
+        this.PhoneNumber = data.PhoneNumber || null;
+        this.total_price = data.total_price || 0;
     }
 
     async save() {
@@ -47,9 +49,17 @@ class LabRequest {
         const [rows] = await db.execute(`
             SELECT DISTINCT lr.request_id, 
                    lr.VisitRecordID, lr.RequestDate, lr.LabStatus,
-                   p.FirstName, p.Father_Name, p.Sex, p.Age,
+                   p.FirstName, p.Father_Name, p.Sex, p.Age, p.is_urgent,
                    c.CardNumber, c.card_id,
-                   per.first_name as doctor_first_name, per.last_name as doctor_last_name
+                   per.first_name as doctor_first_name, per.last_name as doctor_last_name,
+                   (SELECT COUNT(*) FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id AND alt.TestCategory != 'Ultrasound') as standard_tests_count,
+                   (SELECT COUNT(*) FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id AND alt.TestCategory = 'Ultrasound') as ultrasound_tests_count,
+                   (SELECT COUNT(*) FROM labtestresult ltr WHERE ltr.request_id = lr.request_id) as standard_results_count,
+                   (SELECT COUNT(*) FROM ultrasound_test_results utr WHERE utr.request_id = lr.request_id) as ultrasound_results_count
             FROM lab_request lr
             JOIN patientvisitrecord pvr ON lr.VisitRecordID = pvr.VisitRecordID
             JOIN card c ON pvr.card_id = c.card_id
@@ -163,9 +173,9 @@ class LabRequest {
 
     static async findAllRequests(date = null, category = null) {
         let query = `
-            SELECT DISTINCT lr.*,
+            SELECT DISTINCT lr.*, p.is_urgent,
                    pvr.UrgentAttention,
-                   p.FirstName, p.Father_Name, p.Sex, p.Age,
+                   p.FirstName, p.Father_Name, p.Sex, p.Age, p.PhoneNo as PhoneNumber,
                    c.CardNumber, c.card_id,
                    per.first_name as doctor_first_name, per.last_name as doctor_last_name,
                    (SELECT payment_status FROM lab_request_tests WHERE request_id = lr.request_id LIMIT 1) as payment_status,

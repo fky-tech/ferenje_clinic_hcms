@@ -141,13 +141,13 @@ export default function Dashboard() {
             color: 'text-indigo-600',
             bg: 'bg-indigo-50',
         },
-        {
-            title: 'Avg Wait',
-            value: `${stats.avgWaitTime}m`,
-            icon: TrendingUp,
-            color: 'text-pink-600',
-            bg: 'bg-pink-50',
-        },
+        // {
+        //     title: 'Avg Wait',
+        //     value: `${stats.avgWaitTime}m`,
+        //     icon: TrendingUp,
+        //     color: 'text-pink-600',
+        //     bg: 'bg-pink-50',
+        // },
     ];
 
     const quickActions = [

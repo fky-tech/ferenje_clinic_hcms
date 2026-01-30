@@ -49,7 +49,7 @@ export default function DoctorAppointments() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900">My Appointments</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Appointments</h1>
             <Card>
                 {appointments.length === 0 ? <p>No appointments scheduled.</p> : (
                     <Table columns={columns} data={appointments} />

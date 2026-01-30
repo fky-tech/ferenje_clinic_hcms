@@ -28,13 +28,13 @@ class Patient {
     static async create(patientData) {
         const {
             patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth,
-            Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered
+            Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, is_urgent
         } = patientData;
 
         const [result] = await db.execute(
-            `INSERT INTO patient (patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered]
+            `INSERT INTO patient (patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, is_urgent) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [patient_id, doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, is_urgent || false]
         );
         return patient_id;
     }
@@ -55,14 +55,14 @@ class Patient {
     static async update(id, patientData) {
         const {
             doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth,
-            Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered
+            Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, is_urgent
         } = patientData;
 
         const [result] = await db.execute(
             `UPDATE patient SET doctor_id = ?, FirstName = ?, Father_Name = ?, GrandFather_Name = ?, DateOfBirth = ?, 
-       Age = ?, Sex = ?, Region = ?, Wereda = ?, HouseNo = ?, PhoneNo = ?, date_registered = ? 
+       Age = ?, Sex = ?, Region = ?, Wereda = ?, HouseNo = ?, PhoneNo = ?, date_registered = ?, is_urgent = ? 
        WHERE patient_id = ?`,
-            [doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, id]
+            [doctor_id, FirstName, Father_Name, GrandFather_Name, DateOfBirth, Age, Sex, Region, Wereda, HouseNo, PhoneNo, date_registered, is_urgent !== undefined ? is_urgent : false, id]
         );
         return result.affectedRows;
     }

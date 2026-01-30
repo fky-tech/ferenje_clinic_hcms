@@ -10,6 +10,7 @@ import { API_ROUTES } from '../../utils/constants';
 import { getStoredUser, isDateToday, formatDate, formatDateTime } from '../../utils/helpers';
 import Modal from '../../components/common/Modal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import toast from 'react-hot-toast';
 
 export default function DoctorDashboard() {
     const navigate = useNavigate();
@@ -229,18 +230,18 @@ export default function DoctorDashboard() {
     return (
         <div className="space-y-4 p-3 md:p-4 pb-16">
             {/* Header Section - Smaller */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex-1">
-                    <h1 className="text-xl md:text-2xl font-bold text-slate-800">
+                    <h1 className="text-xl md:text-3xl font-bold text-slate-800">
                         Dashboard
                     </h1>
-                    <p className="text-slate-500 text-xs md:text-xs mt-0.5">{currentDate}</p>
+                    <p className="text-slate-500 text-xs md:text-sm mt-0.5">{currentDate}</p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                    <div className="text-2xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-600/70 bg-clip-text text-transparent">
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-1">
+                    <div className="text-xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-600/70 bg-clip-text text-transparent">
                         {currentTime}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-[10px] md:text-xs text-slate-500">
                         Live updating
                     </div>
                 </div>

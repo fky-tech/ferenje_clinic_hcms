@@ -12,7 +12,7 @@ import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
-import { formatDateTime, formatDate, formatForAPI } from '../../utils/helpers';
+import { formatDate } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 export default function Appointments() {
@@ -74,17 +74,7 @@ export default function Appointments() {
     }
   };
 
-  const handleScheduleNew = () => {
-    setCurrentAppointment(null);
-    setFormData({
-      card_id: '',
-      doctor_id: '',
-      appointment_date: new Date().toISOString().split('T')[0],
-      reason: '',
-      status: 'scheduled'
-    });
-    setIsModalOpen(true);
-  };
+
 
   const handleEdit = (appointment) => {
     setCurrentAppointment(appointment);
@@ -100,30 +90,7 @@ export default function Appointments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        card_id: formData.card_id,
-        doctor_id: formData.doctor_id,
-        appointment_date: formData.appointment_date,
-        reason: formData.reason,
-        status: formData.status
-      };
-
-      if (currentAppointment) {
-        await api.put(`${API_ROUTES.APPOINTMENTS}/${currentAppointment.appointment_id}`, payload);
-        toast.success('Appointment updated successfully');
-      } else {
-        await api.post(API_ROUTES.APPOINTMENTS, payload);
-        toast.success('Appointment scheduled successfully');
-        addNotification(`New appointment scheduled for Dr. ${doctors.find(d => d.doctor_id == formData.doctor_id)?.last_name || 'Doctor'}`, 'success', ['receptionist', 'doctor', 'admin']);
-      }
-
-      setIsModalOpen(false);
-      fetchAppointments();
-    } catch (error) {
-      console.error('Error saving appointment:', error);
-      toast.error(error.response?.data?.message || 'Failed to save appointment');
-    }
+    setIsModalOpen(false);
   };
 
   const handleChange = (e) => {
@@ -148,7 +115,7 @@ export default function Appointments() {
     },
     {
       header: 'Actions', render: (row) => (
-        <Button size="sm" variant="secondary" onClick={() => handleEdit(row)}>Edit</Button>
+        <Button size="sm" variant="secondary" onClick={() => handleEdit(row)}>View</Button>
       )
     },
   ];
@@ -159,10 +126,9 @@ export default function Appointments() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Appointments</h1>
           <p className="text-gray-500 mt-1">Schedule and manage appointments</p>
         </div>
-        <Button variant="primary" onClick={handleScheduleNew}>Schedule New</Button>
       </div>
 
       <Card title={`Total Appointments: ${appointments.length}`} icon={CalendarIcon}>
@@ -172,7 +138,7 @@ export default function Appointments() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentAppointment ? 'Edit Appointment' : 'Schedule Appointment'}
+        title="View Appointment Details"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -180,9 +146,9 @@ export default function Appointments() {
             <select
               name="card_id"
               value={formData.card_id}
-              onChange={handleChange}
-              className="input-field"
-              required
+              className="input-field bg-gray-100 appearance-none"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'none', textIndent: '1px' }}
+              disabled
             >
               <option value="">Select Patient</option>
               {patients.map(p => (
@@ -198,9 +164,9 @@ export default function Appointments() {
             <select
               name="doctor_id"
               value={formData.doctor_id}
-              onChange={handleChange}
-              className="input-field"
-              required
+              className="input-field bg-gray-100 appearance-none"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'none', textIndent: '1px' }}
+              disabled
             >
               <option value="">Select Doctor</option>
               {doctors.map(d => (
@@ -215,8 +181,8 @@ export default function Appointments() {
             <EthiopianDatePicker
               label="Date"
               value={formData.appointment_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, appointment_date: e.target.value }))}
-              required
+              disabled
+              className="bg-gray-100"
             />
           </div>
 
@@ -225,8 +191,9 @@ export default function Appointments() {
             <select
               name="status"
               value={formData.status}
-              onChange={handleChange}
-              className="input-field"
+              className="input-field bg-gray-100 appearance-none"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'none', textIndent: '1px' }}
+              disabled
             >
               <option value="scheduled">Scheduled</option>
               <option value="cancelled">Cancelled</option>
@@ -235,8 +202,7 @@ export default function Appointments() {
           </div>
 
           <div className="flex justify-end pt-4 border-t space-x-3">
-            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">Save</Button>
+            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Close</Button>
           </div>
         </form>
       </Modal>

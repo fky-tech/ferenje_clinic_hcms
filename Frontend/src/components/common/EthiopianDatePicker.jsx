@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ETHIOPIAN_MONTHS, ethToGregorianDate, getEthiopianParts } from '../../utils/dateUtils';
 
-export default function EthiopianDatePicker({ label, value, onChange, error, required }) {
+export default function EthiopianDatePicker({ label, value, onChange, error, required, disabled }) {
     const [parts, setParts] = useState({
         day: 1,
         month: 1,
@@ -50,7 +50,8 @@ export default function EthiopianDatePicker({ label, value, onChange, error, req
                 <select
                     value={parts.day}
                     onChange={(e) => handlePartChange('day', e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 focus:border-blue-500 outline-none"
+                    disabled={disabled}
+                    className={`w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed appearance-none' : 'focus:border-blue-500'}`}
                 >
                     {[...Array(30).keys()].map(i => (
                         <option key={i + 1} value={i + 1}>{i + 1}</option>
@@ -59,7 +60,8 @@ export default function EthiopianDatePicker({ label, value, onChange, error, req
                 <select
                     value={parts.month}
                     onChange={(e) => handlePartChange('month', e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 focus:border-blue-500 outline-none"
+                    disabled={disabled}
+                    className={`w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed appearance-none' : 'focus:border-blue-500'}`}
                 >
                     {ETHIOPIAN_MONTHS.map((m, idx) => (
                         <option key={idx + 1} value={idx + 1}>{m}</option>
@@ -69,7 +71,8 @@ export default function EthiopianDatePicker({ label, value, onChange, error, req
                     type="number"
                     value={parts.year}
                     onChange={(e) => handlePartChange('year', e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 focus:border-blue-500 outline-none"
+                    disabled={disabled}
+                    className={`w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'focus:border-blue-500'}`}
                     placeholder="Year"
                 />
             </div>

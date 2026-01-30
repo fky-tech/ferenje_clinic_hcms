@@ -15,6 +15,7 @@ class Queue {
         this.doctor_first_name = data.doctor_first_name || null;
         this.doctor_last_name = data.doctor_last_name || null;
         this.specialization = data.specialization || null;
+        this.is_urgent = data.is_urgent || false;
     }
 
     async save() {
@@ -31,7 +32,9 @@ class Queue {
         const { card_id, doctor_id, status, queue_position, date } = queueData;
         // Ensure parameters are not undefined. Use null for optional fields if needed, or defaults.
         const safeStatus = status || 'waiting';
-        const safeDate = date || new Date(); // Default to now if not provided
+        // Ensure date is formatted for MySQL
+        const dateObj = date ? new Date(date) : new Date();
+        const safeDate = dateObj.toISOString().slice(0, 19).replace('T', ' ');
 
         let finalQueuePosition = queue_position;
         if (finalQueuePosition === undefined || finalQueuePosition === null) {
@@ -53,7 +56,7 @@ class Queue {
         const [rows] = await db.execute(`
       SELECT q.*, 
              c.CardNumber,
-             p.FirstName, p.Father_Name,
+             p.FirstName, p.Father_Name, p.is_urgent,
              per.first_name as doctor_first_name, per.last_name as doctor_last_name,
              doc.specialization
       FROM queue q
@@ -61,7 +64,7 @@ class Queue {
       LEFT JOIN patient p ON c.patient_id = p.patient_id
       LEFT JOIN doctor doc ON q.doctor_id = doc.doctor_id
       LEFT JOIN person per ON doc.doctor_id = per.person_id
-      ORDER BY q.queue_position
+      ORDER BY p.is_urgent DESC, q.date ASC
     `);
         return rows.map(row => new Queue(row));
     }
@@ -70,7 +73,7 @@ class Queue {
         const [rows] = await db.execute(`
       SELECT q.*, 
              c.CardNumber,
-             p.FirstName, p.Father_Name,
+             p.FirstName, p.Father_Name, p.is_urgent,
              per.first_name as doctor_first_name, per.last_name as doctor_last_name,
              doc.specialization
       FROM queue q
@@ -85,12 +88,12 @@ class Queue {
 
     static async findByDoctorId(doctorId) {
         const [rows] = await db.execute(`
-      SELECT q.*, c.CardNumber, p.FirstName, p.Father_Name
+      SELECT q.*, c.CardNumber, p.FirstName, p.Father_Name, p.is_urgent
       FROM queue q
       LEFT JOIN card c ON q.card_id = c.card_id
       LEFT JOIN patient p ON c.patient_id = p.patient_id
       WHERE q.doctor_id = ?
-      ORDER BY q.queue_position
+      ORDER BY p.is_urgent DESC, q.date ASC
     `, [doctorId]);
         return rows.map(row => new Queue(row));
     }

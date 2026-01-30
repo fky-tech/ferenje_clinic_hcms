@@ -11,27 +11,31 @@ import EthiopianDatePicker from '../../components/common/EthiopianDatePicker';
 
 export default function LabRequests() {
     const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterDate, setFilterDate] = useState('');
+    const [filterDate, setFilterDate] = useState(''); // Added missing state
     const [selectedRequest, setSelectedRequest] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [requestTests, setRequestTests] = useState([]);
     const [testsLoading, setTestsLoading] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        fetchLabRequests();
-    }, [filterDate]);
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm && requests.length === 0) {
+                fetchRequests();
+            }
+        }, 500);
 
-    const fetchLabRequests = async () => {
-        setLoading(true);
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, requests.length]);
+
+    const fetchRequests = async () => {
         try {
-            const params = {};
-            if (filterDate) params.date = filterDate;
-            const response = await api.get('/lab-requests/requests', { params });
+            setLoading(true);
+            const response = await api.get('/lab-requests/requests');
             setRequests(response.data);
         } catch (error) {
-            console.error('Error fetching lab requests:', error);
+            console.error('Error fetching requests:', error);
             toast.error('Failed to load lab requests');
         } finally {
             setLoading(false);
@@ -46,41 +50,55 @@ export default function LabRequests() {
             const response = await api.get(`/lab-request-tests/request/${request.request_id}`);
             setRequestTests(response.data);
         } catch (error) {
-            console.error('Error fetching request tests:', error);
-            toast.error('Failed to load test details');
+            console.error('Error fetching tests:', error);
+            toast.error('Failed to load tests');
         } finally {
             setTestsLoading(false);
         }
     };
 
-    const filteredRequests = requests.filter(req => {
+    const filteredRequests = Array.isArray(requests) ? requests.filter(req => {
+        if (!req) return false;
         const term = searchTerm.toLowerCase();
+        const firstName = req.FirstName?.toLowerCase() || '';
+        const fatherName = req.Father_Name?.toLowerCase() || '';
+        const cardNumber = req.CardNumber ? req.CardNumber.toString().toLowerCase() : '';
+        const phoneNumber = req.PhoneNumber ? req.PhoneNumber.toString() : '';
+        const reqId = req.request_id ? req.request_id.toString() : '';
+
         return (
-            req.FirstName?.toLowerCase().includes(term) ||
-            req.Father_Name?.toLowerCase().includes(term) ||
-            req.CardNumber?.includes(term) ||
-            req.request_id?.toString().includes(term)
+            firstName.includes(term) ||
+            fatherName.includes(term) ||
+            cardNumber.includes(term) ||
+            phoneNumber.includes(term) ||
+            reqId.includes(term)
         );
-    });
+    }) : [];
 
     const columns = [
         { header: 'ID', accessor: 'request_id' },
-        { header: 'Patient', render: (row) => `${row.FirstName || ''} ${row.Father_Name || ''}` },
+        {
+            header: 'Patient',
+            render: (row) => row ? `${row.FirstName || ''} ${row.Father_Name || ''}`.trim() || 'Unknown' : 'Unknown'
+        },
         { header: 'Card No', accessor: 'CardNumber' },
-        { header: 'Date', render: (row) => formatDate(row.RequestDate) },
+        {
+            header: 'Date',
+            render: (row) => row?.RequestDate ? formatDate(row.RequestDate) : '-'
+        },
         {
             header: 'Total Price',
             render: (row) => (
                 <span className="font-semibold text-blue-600">
-                    {formatCurrency(row.total_price || 0)}
+                    {formatCurrency(row?.total_price || 0)}
                 </span>
             )
         },
         {
             header: 'Payment', render: (row) => (
-                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${row.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${(row?.payment_status || 'unpaid') === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
-                    {row.payment_status || 'unpaid'}
+                    {row?.payment_status || 'unpaid'}
                 </span>
             )
         },
@@ -115,18 +133,22 @@ export default function LabRequests() {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="mb-4 relative max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                        type="text"
-                        placeholder="Search patient or request ID..."
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="mb-4 relative max-w-md flex items-center gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="Search patient or request ID..."
+                            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && fetchRequests()}
+                        />
+                    </div>
+                    <Button onClick={fetchRequests} disabled={loading}>Search</Button>
                 </div>
-                {loading ? <LoadingSpinner /> : (
-                    <Table columns={columns} data={filteredRequests} />
+                {loading && requests.length === 0 ? <div className="text-center p-4">Searching...</div> : (
+                    <Table columns={columns} data={filteredRequests} emptyMessage="No requests found. Search to view data." />
                 )}
             </div>
 

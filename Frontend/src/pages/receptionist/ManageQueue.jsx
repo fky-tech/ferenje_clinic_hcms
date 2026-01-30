@@ -50,7 +50,15 @@ export default function ManageQueue() {
                 return qDate.getDate() === today.getDate() &&
                     qDate.getMonth() === today.getMonth() &&
                     qDate.getFullYear() === today.getFullYear();
-            }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // FIFO: Oldest (smallest time) first
+            }).sort((a, b) => {
+                // Priority Sort: Urgent (1) > Normal (0) or check is_urgent field
+                // Note: Check what field is returned. Model returns 'is_urgent' from patient table.
+                // Assuming `p.is_urgent` maps to `is_urgent` in the response object.
+                const urgentA = a.is_urgent ? 1 : 0;
+                const urgentB = b.is_urgent ? 1 : 0;
+                if (urgentA !== urgentB) return urgentB - urgentA; // DESC
+                return new Date(a.date).getTime() - new Date(b.date).getTime(); // ASC Time for ties
+            });
             setQueues(todayQueue);
         } catch (error) {
             console.error('Error fetching queues:', error);
@@ -141,10 +149,10 @@ export default function ManageQueue() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Manage Queue</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Manage Queue</h1>
                     <p className="text-gray-500 mt-1">Select a doctor to view their specific queue</p>
                 </div>
-                <Button variant="primary" onClick={handleAddToQueue}>Add to Queue</Button>
+                {/* <Button variant="primary" onClick={handleAddToQueue}>Add to Queue</Button> */}
             </div>
 
             {selectedDoctorId && (

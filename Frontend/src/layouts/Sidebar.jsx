@@ -12,7 +12,9 @@ import {
     X,
     Clock,
     FileText,
-    Activity
+    Activity,
+    User,
+    Settings
 } from 'lucide-react';
 import { useState } from 'react';
 import { clearStoredUser, getStoredUser } from '../utils/helpers';
@@ -43,11 +45,10 @@ const adminMenuItems = [
     { path: '/admin/reports', icon: FileText, label: 'Generate Reports' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
     const location = useLocation();
     const navigate = useNavigate();
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     // Get User Role
     const user = getStoredUser();
@@ -151,6 +152,23 @@ export default function Sidebar() {
                 })}
             </nav>
 
+            {/* User Profile - Mobile Only */}
+            <div className="lg:hidden p-4 border-t border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                            {user?.first_name} {user?.last_name}
+                        </p>
+                        <p className="text-xs text-gray-500 capitalize">{user?.role || 'User'}</p>
+                    </div>
+                </div>
+                {/* Mobile specific profile actions could go here if needed, 
+                    but keep it simple for now to avoid duplicating Header too much */}
+            </div>
+
             {/* Logout */}
             <div className="p-3 border-t border-gray-200">
                 <button
@@ -167,14 +185,6 @@ export default function Sidebar() {
 
     return (
         <>
-            {/* Mobile Menu Button - Visible lg:hidden */}
-            <button
-                onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md"
-            >
-                {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-
             {/* Mobile Sidebar (Drawer) */}
             {isMobileOpen && (
                 <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setIsMobileOpen(false)}>

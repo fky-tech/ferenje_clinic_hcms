@@ -269,20 +269,20 @@ export default function DoctorPatientDetails() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
-                    <Button variant="secondary" onClick={() => navigate('/doctor/patients')}>
+                    <Button variant="secondary" onClick={() => navigate('/doctor/patients')} size="sm">
                         <ArrowLeft className="w-4 h-4 mr-2" /> Back
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{card.FirstName} {card.Father_Name}</h1>
-                        <p className="text-sm text-gray-500">Card: {card.CardNumber} | Age: {card.Age} | Sex: {card.Sex}</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{card.FirstName} {card.Father_Name}</h1>
+                        <p className="text-xs sm:text-sm text-gray-500">Card: {card.CardNumber} | Age: {card.Age} | Sex: {card.Sex}</p>
                     </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     {activeTab === 'clinical' && (
                         <>
-                            <Button variant="success" onClick={handleSaveVisit} className="px-6 shadow-sm hover:shadow-md">
+                            <Button variant="success" onClick={handleSaveVisit} className="flex-1 sm:flex-none px-4 text-xs sm:text-sm">
                                 Save Visit
                             </Button>
                             <Button variant="primary" onClick={() => {
@@ -291,20 +291,20 @@ export default function DoctorPatientDetails() {
                                     return;
                                 }
                                 setIsLabModalOpen(true);
-                            }} className="px-6 shadow-sm hover:shadow-md">
+                            }} className="flex-1 sm:flex-none px-4 text-xs sm:text-sm">
                                 Order Lab
                             </Button>
-                            <Button variant="secondary" onClick={() => setIsInvestigationHistoryModalOpen(true)} className="px-6 shadow-sm hover:shadow-md">
-                                Investigation
+                            <Button variant="secondary" onClick={() => setIsInvestigationHistoryModalOpen(true)} className="flex-1 sm:flex-none px-4 text-xs sm:text-sm">
+                                Investigate
                             </Button>
                             <Button
                                 variant="outline"
                                 onClick={() => setIsFPModalOpen(true)}
-                                className="px-6 shadow-sm hover:shadow-md border-pink-500 text-pink-600 hover:bg-pink-50"
+                                className="flex-1 sm:flex-none px-4 text-xs sm:text-sm border-pink-500 text-pink-600"
                             >
-                                Family Plan
+                                FP
                             </Button>
-                            <Button variant="primary" onClick={() => setIsReportModalOpen(true)} className="px-6 shadow-sm hover:shadow-md bg-indigo-600 hover:bg-indigo-700">
+                            <Button variant="primary" onClick={() => setIsReportModalOpen(true)} className="flex-1 sm:flex-none px-4 text-xs sm:text-sm bg-indigo-600">
                                 Report
                             </Button>
                         </>

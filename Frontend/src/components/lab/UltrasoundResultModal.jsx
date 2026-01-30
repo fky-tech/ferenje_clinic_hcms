@@ -181,20 +181,20 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={selectedTest ? `Findings: ${selectedTest.test_name}` : `Ultrasound Studies: ${request?.FirstName}`} maxWidth="4xl">
+        <Modal isOpen={isOpen} onClose={onClose} title={selectedTest ? `Findings: ${selectedTest.test_name}` : `Ultrasound Studies: ${request?.FirstName}`} size="lg">
             <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4 bg-purple-50 p-3 rounded-lg text-sm">
+                <div className="grid grid-cols-2 gap-4 bg-blue-50 p-3 rounded-lg text-sm">
                     <div>
-                        <p className="text-purple-700 font-semibold text-xs uppercase">Patient</p>
+                        <p className="text-blue-700 font-semibold text-xs uppercase">Patient</p>
                         <p className="font-bold">{request?.FirstName} {request?.Father_Name} ({request?.Age} {request?.Sex})</p>
                     </div>
                     <div>
-                        <p className="text-purple-700 font-semibold text-xs uppercase">Requested By</p>
+                        <p className="text-blue-700 font-semibold text-xs uppercase">Requested By</p>
                         <p className="font-bold">Dr. {request?.doctor_first_name} {request?.doctor_last_name}</p>
                     </div>
                 </div>
 
-                {loading ? <div className="text-center py-10 text-purple-600 font-medium">Loading details...</div> : (
+                {loading ? <div className="text-center py-10 text-blue-600 font-medium">Loading details...</div> : (
                     <>
                         {!selectedTest ? (
                             <div className="space-y-4">
@@ -204,15 +204,15 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                                         <div
                                             key={test.test_id}
                                             onClick={() => handleSelectTest(test)}
-                                            className="p-4 border border-purple-100 rounded-xl bg-white hover:bg-purple-50 cursor-pointer transition-all flex justify-between items-center shadow-sm"
+                                            className="p-4 border border-blue-100 rounded-xl bg-white hover:bg-blue-50 cursor-pointer transition-all flex justify-between items-center shadow-sm"
                                         >
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
                                                     <ListPlus className="w-5 h-5" />
                                                 </div>
                                                 <span className="font-bold text-gray-800">{test.test_name}</span>
                                             </div>
-                                            <Button size="sm" variant="primary" className="bg-purple-600">Enter Results</Button>
+                                            <Button size="sm" variant="primary" className="bg-blue-600 hover:bg-blue-700 border-none">Enter Results</Button>
                                         </div>
                                     ))}
                                 </div>
@@ -222,7 +222,7 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                                 <div className="space-y-6">
                                     <button
                                         onClick={() => setSelectedTest(null)}
-                                        className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center mb-2"
+                                        className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center mb-2"
                                     >
                                         ← Back to Study List
                                     </button>
@@ -238,12 +238,12 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                                                     >
                                                         <div
                                                             onClick={() => setEditingFindingIndex(idx)}
-                                                            className="flex-1 p-4 border border-purple-100 rounded-xl bg-white hover:bg-purple-50 cursor-pointer transition-all flex justify-between items-center shadow-sm group"
+                                                            className="flex-1 p-4 border border-blue-100 rounded-xl bg-white hover:bg-blue-50 cursor-pointer transition-all flex justify-between items-center shadow-sm group"
                                                         >
-                                                            <span className="font-bold text-gray-800 group-hover:text-purple-700 uppercase tracking-wide">
+                                                            <span className="font-bold text-gray-800 group-hover:text-blue-700 uppercase tracking-wide">
                                                                 {finding.title || '(Untitled Finding)'}
                                                             </span>
-                                                            <svg className="w-5 h-5 text-gray-400 group-hover:text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                             </svg>
                                                         </div>
@@ -259,16 +259,16 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
 
                                                 <button
                                                     onClick={addFindingBox}
-                                                    className="w-full flex items-center justify-center px-4 py-4 bg-white border-2 border-dashed border-purple-200 text-purple-600 rounded-xl hover:bg-purple-50 hover:border-purple-300 transition-all font-bold"
+                                                    className="w-full flex items-center justify-center px-4 py-4 bg-white border-2 border-dashed border-blue-200 text-blue-600 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all font-bold"
                                                 >
                                                     <Plus className="w-5 h-5 mr-2" /> Add New Finding
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="border border-purple-100 rounded-xl bg-white shadow-sm p-4 relative animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="border border-blue-100 rounded-xl bg-white shadow-sm p-4 relative animate-in fade-in slide-in-from-bottom-2 duration-300">
                                             <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                                                <h4 className="font-bold text-purple-700 uppercase tracking-wider text-sm">
+                                                <h4 className="font-bold text-blue-700 uppercase tracking-wider text-sm">
                                                     Editing Finding
                                                 </h4>
                                                 <Button size="sm" variant="secondary" onClick={() => setEditingFindingIndex(null)}>
@@ -278,12 +278,12 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
 
                                             <div className="space-y-4">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-purple-600 mb-1 uppercase tracking-wider">Title / Organ</label>
+                                                    <label className="block text-xs font-bold text-blue-600 mb-1 uppercase tracking-wider">Title / Organ</label>
                                                     <input
                                                         type="text"
                                                         value={findings[editingFindingIndex].title}
                                                         onChange={(e) => handleTitleChange(editingFindingIndex, e.target.value)}
-                                                        className="w-full px-4 py-2 bg-purple-50/30 border border-purple-100 rounded-lg focus:ring-2 focus:ring-purple-500 font-medium"
+                                                        className="w-full px-4 py-2 bg-blue-50/30 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 font-medium"
                                                         placeholder="e.g. LIVER, GALLBLADDER, PANCREAS"
                                                         autoFocus
                                                     />
@@ -294,7 +294,7 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                                                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Findings / Description</label>
                                                         <button
                                                             onClick={() => addBulletPoint(editingFindingIndex)}
-                                                            className="flex items-center text-[10px] font-bold text-purple-600 hover:text-purple-800"
+                                                            className="flex items-center text-[10px] font-bold text-blue-600 hover:text-blue-800"
                                                         >
                                                             <ListPlus className="w-3 h-3 mr-1" /> Add Point
                                                         </button>
@@ -302,11 +302,11 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                                                     <div className="space-y-2">
                                                         {findings[editingFindingIndex].descriptions.map((desc, dIndex) => (
                                                             <div key={dIndex} className="flex items-start gap-2 group/bullet">
-                                                                <span className="mt-2.5 w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0" />
+                                                                <span className="mt-2.5 w-1.5 h-1.5 bg-blue-400 rounded-full flex-shrink-0" />
                                                                 <textarea
                                                                     value={desc}
                                                                     onChange={(e) => handleDescriptionChange(editingFindingIndex, dIndex, e.target.value)}
-                                                                    className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg focus:ring-1 focus:ring-purple-400 text-sm resize-none"
+                                                                    className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg focus:ring-1 focus:ring-blue-400 text-sm resize-none"
                                                                     placeholder="Enter observation..."
                                                                     rows={1}
                                                                 />
@@ -329,7 +329,7 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                                         <textarea
                                             value={conclusion}
                                             onChange={(e) => setConclusion(e.target.value)}
-                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 font-medium"
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium"
                                             placeholder="Enter final clinical impression..."
                                             rows={4}
                                         />
@@ -346,7 +346,7 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                             variant="primary"
                             onClick={handleSubmit}
                             disabled={submitting || loading}
-                            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-200"
+                            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 border-none"
                         >
                             {submitting ? 'Saving Results...' : 'Save & Print Report'}
                         </Button>

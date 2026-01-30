@@ -102,6 +102,7 @@ export default function RegisterPatient() {
     // Payment
     amount: 100, // Default card fee
     doctor_id: "", // Assigned Doctor
+    is_urgent: false, // Urgent status
   });
   const [doctors, setDoctors] = useState([]);
   const [errors, setErrors] = useState({});
@@ -134,6 +135,8 @@ export default function RegisterPatient() {
         [name]: value,
         DateOfBirth: dob,
       }));
+    } else if (name === "is_urgent") {
+      setFormData((prev) => ({ ...prev, [name]: e.target.checked }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -175,6 +178,7 @@ export default function RegisterPatient() {
         PhoneNo: cleanData.PhoneNo,
         date_registered: cleanData.date_registered,
         doctor_id: cleanData.doctor_id,
+        is_urgent: cleanData.is_urgent,
       });
 
       // 2. Create card
@@ -207,6 +211,19 @@ export default function RegisterPatient() {
         ["receptionist", "admin"]
       );
 
+      // 4. Auto-add to Queue
+      try {
+        await api.post(API_ROUTES.QUEUES, {
+          card_id: newCardId,
+          doctor_id: cleanData.doctor_id,
+          date: new Date().toISOString(), // Optional, backend defaults to now
+        });
+        toast.success("Patient added to queue automatically");
+      } catch (queueError) {
+        console.error("Auto-queue failed:", queueError);
+        toast.error("Patient registered but failed to add to queue");
+      }
+
       // Reset form
       setFormData({
         patient_id: generatePatientId(),
@@ -226,6 +243,7 @@ export default function RegisterPatient() {
         expire_date: formatForAPI(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)),
         amount: 100,
         doctor_id: "",
+        is_urgent: false,
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -298,7 +316,7 @@ export default function RegisterPatient() {
     <div className="min-h-screen bg-gray-50/50  flex flex-col mt-[-26px] font-sans">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-[1300px]sm:rounded-2xl sm:border-white overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]"
+        className="w-full max-w-[1300px] sm:rounded-2xl sm:border-white overflow-hidden flex flex-col max-h-[98vh] sm:max-h-[90vh]"
       >
         {/* Header - Mobile responsive */}
         <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 shrink-0">
@@ -315,11 +333,11 @@ export default function RegisterPatient() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 self-end sm:self-center">
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+          <div className="hidden items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 self-end sm:self-center">
+            <span className="hidden text-xs text-gray-400 font-medium uppercase tracking-wider">
               ID
             </span>
-            <span className="text-sm font-mono font-bold text-gray-700">
+            <span className="text-sm hidden font-mono font-bold text-gray-700">
               #{formData.patient_id}
             </span>
           </div>
@@ -471,6 +489,19 @@ export default function RegisterPatient() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div className="pt-2 flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_urgent"
+                    name="is_urgent"
+                    checked={formData.is_urgent}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                  />
+                  <label htmlFor="is_urgent" className="ml-2 text-sm font-medium text-gray-900">
+                    Urgent Case
+                  </label>
                 </div>
               </div>
             </div>

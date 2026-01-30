@@ -49,8 +49,8 @@ export default function Ultrasounds() {
 
     const groupedRequests = requests.reduce((acc, req) => {
         // Show if there are ultrasound tests AND they are not all finished AND paid
-        const hasUltrasound = parseInt(req.ultrasound_tests_count) > 0;
-        const ultrasoundPending = hasUltrasound && parseInt(req.ultrasound_results_count) < parseInt(req.ultrasound_tests_count);
+        const hasUltrasound = parseInt(req.ultrasound_tests_count || 0) > 0;
+        const ultrasoundPending = hasUltrasound && parseInt(req.ultrasound_results_count || 0) < parseInt(req.ultrasound_tests_count || 0);
 
         if (!ultrasoundPending || req.payment_status !== 'paid') return acc;
 
@@ -126,7 +126,7 @@ export default function Ultrasounds() {
                                     className="p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center"
                                 >
                                     <div className="flex items-center space-x-4">
-                                        <div className="bg-purple-100 p-2 rounded-full text-purple-600">
+                                        <div className="bg-blue-100 p-2 rounded-full text-blue-600">
                                             <Activity className="w-6 h-6" />
                                         </div>
                                         <div>
@@ -156,12 +156,12 @@ export default function Ultrasounds() {
                                             <div
                                                 key={request.request_id}
                                                 onClick={() => handleOpenResultModal(request)}
-                                                className="flex justify-between items-center p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
+                                                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
                                             >
-                                                <div className="flex items-center space-x-3">
-                                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                                                    <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
                                                     <div>
-                                                        <p className="font-medium text-gray-800">
+                                                        <p className="font-medium text-gray-800 text-sm">
                                                             Requested: {formatDateTime(request.RequestDate)}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
@@ -169,14 +169,14 @@ export default function Ultrasounds() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center space-x-3">
+                                                <div className="flex items-center justify-between w-full sm:w-auto space-x-3">
                                                     <span className={`px-2 py-1 text-xs rounded-full ${request.LabStatus === 'completed'
                                                         ? 'bg-green-100 text-green-800'
                                                         : 'bg-yellow-100 text-yellow-800'
                                                         }`}>
                                                         {request.LabStatus}
                                                     </span>
-                                                    <Button size="sm" variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-100">
+                                                    <Button size="sm" variant="outline" className="text-xs">
                                                         {request.LabStatus === 'completed' ? 'View/Edit' : 'Enter Results'}
                                                     </Button>
                                                 </div>

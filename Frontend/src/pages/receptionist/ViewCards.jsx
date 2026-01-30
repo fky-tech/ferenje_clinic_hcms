@@ -13,18 +13,19 @@ import toast from 'react-hot-toast';
 export default function ViewCards() {
     const location = useLocation();
     const [cards, setCards] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState(location.state?.cardNumber || '');
     const [selectedCard, setSelectedCard] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [renewLoading, setRenewLoading] = useState(false);
     const [renewalFee, setRenewalFee] = useState(100);
 
-    useEffect(() => {
-        fetchCards();
-    }, []);
+    // useEffect(() => {
+    //     fetchCards();
+    // }, []);
 
     const fetchCards = async () => {
+        setLoading(true);
         try {
             const response = await api.get(API_ROUTES.CARDS);
             setCards(response.data);
@@ -35,6 +36,21 @@ export default function ViewCards() {
             setLoading(false);
         }
     };
+
+    // Fetch cards ONLY when search query is typed (debounced or effect) or if we want to filter locally from all cards, 
+    // we must fetch all cards first. 
+    // User request: "cards are coming before search i want the cards to come when searched".
+    // Strategy: Fetch all cards on mount (keep it) BUT filter display to show NOTHING if search is empty.
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchQuery && cards.length === 0) {
+                fetchCards();
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, cards.length]);
 
     const handleViewDetails = (card) => {
         setSelectedCard(card);
@@ -78,11 +94,11 @@ export default function ViewCards() {
         return num ? num.toString().replace(/\d{4}(?=.)/g, '$& ') : '**** **** **** ****';
     };
 
-    const filteredCards = cards.filter(card =>
+    const filteredCards = searchQuery ? cards.filter(card =>
         card.CardNumber?.toString().includes(searchQuery) ||
         card.FirstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         card.Father_Name?.toLowerCase().includes(searchQuery.toLowerCase())
-    ).sort((a, b) => b.card_id - a.card_id);
+    ).sort((a, b) => b.card_id - a.card_id) : [];
 
     if (loading) return <LoadingSpinner />;
 
@@ -98,91 +114,109 @@ export default function ViewCards() {
                 </div>
 
                 {/* Search Input */}
-                <div className="relative w-full sm:w-64">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-4 w-4 text-gray-400" />
+                <div className="relative w-full sm:w-80 flex gap-2">
+                    <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search name or card #..."
+                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && fetchCards()}
+                        />
                     </div>
-                    <input
-                        type="text"
-                        placeholder="Search name or card #..."
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                    <Button onClick={fetchCards} disabled={loading} size="sm">Search</Button>
                 </div>
             </div>
 
-            {/* Cards Grid - Increased columns and added max-w-sm to make cards smaller */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                {filteredCards.map((card) => (
-                    <div
-                        key={card.card_id || card.id}
-                        onClick={() => handleViewDetails(card)}
-                        className="group relative w-full max-w-sm mx-auto aspect-[1.586/1] rounded-xl cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl select-none"
-                    >
-                        {/* Main Card Design */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-gray-50  to-blue-100/50 
-                        hover:from-blue-100/70  hover:to-gray-50  rounded-xl p-5 flex flex-col justify-between shadow-lg overflow-hidden border border-slate-700/50">
-
-                            {/* Decorative Wave/Pulse */}
-                            <div className="absolute right-4 top-2 opacity-70">
-                                <Activity className="w-8 h-8 text-blue-900" />
-                            </div>
-
-                            {/* Top: Header */}
-                            <div className="z-10">
-                                <span className="text-slate-600 text-[10px] font-bold tracking-[0.15em] uppercase block mb-4">
-                                    Medical Card
-                                </span>
-
-                                {/* Card Number */}
-                                <div className="font-mono text-lg sm:text-xl text-slate-900 tracking-widest drop-shadow-sm truncate">
-                                    {formatCardNumber(card.CardNumber)}
-                                </div>
-                            </div>
-
-                            {/* Middle: Card Holder Name (Now Visible) */}
-                            <div className="z-10 mt-auto mb-3">
-                                <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
-                                    Card Holder
-                                </div>
-                                <div className="text-slate-900 font-medium tracking-wide text-sm sm:text-base truncate uppercase">
-                                    {card.FirstName} {card.Father_Name}
-                                </div>
-                            </div>
-
-                            {/* Bottom: Dates - UPDATED: Using formatDate function */}
-                            <div className="flex justify-between items-end z-10 border-t border-white/10 pt-2">
-                                <div>
-                                    <div className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">
-                                        Issued
-                                    </div>
-                                    <div className="text-slate-900 font-mono text-xs">
-                                        {formatDate(card.issue_date)} {/* Changed here */}
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">
-                                        Expires
-                                    </div>
-                                    <div className="text-slate-900 font-mono text-xs">
-                                        {formatDate(card.expire_date)} {/* Changed here */}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Expired Overlay */}
-                        {card.status !== 'Active' && (
-                            <div className="absolute inset-0 z-20 rounded-xl bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-                                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg transform -rotate-12 border border-white/50">
-                                    EXPIRED
-                                </span>
-                            </div>
-                        )}
+            {/* Cards Grid or Empty State */}
+            {cards.length === 0 && !loading ? (
+                <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200">
+                    <div className="mx-auto w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                        <Search className="w-6 h-6 text-blue-500" />
                     </div>
-                ))}
-            </div>
+                    <h3 className="text-lg font-medium text-gray-900">Ready to Search</h3>
+                    <p className="text-gray-500 mt-1 max-w-sm mx-auto">
+                        Enter a card number or patient name above and click Search to view patient cards.
+                    </p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                    {filteredCards.length > 0 ? filteredCards.map((card) => (
+                        <div
+                            key={card.card_id || card.id}
+                            onClick={() => handleViewDetails(card)}
+                            className="group relative w-full max-w-sm mx-auto aspect-[1.586/1] rounded-xl cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl select-none"
+                        >
+                            {/* Main Card Design */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-gray-50  to-blue-100/50 
+                            hover:from-blue-100/70  hover:to-gray-50  rounded-xl p-5 flex flex-col justify-between shadow-lg overflow-hidden border border-slate-700/50">
+
+                                {/* Decorative Wave/Pulse */}
+                                <div className="absolute right-4 top-2 opacity-70">
+                                    <Activity className="w-8 h-8 text-blue-900" />
+                                </div>
+
+                                {/* Top: Header */}
+                                <div className="z-10">
+                                    <span className="text-slate-600 text-[10px] font-bold tracking-[0.15em] uppercase block mb-4">
+                                        Medical Card
+                                    </span>
+
+                                    {/* Card Number */}
+                                    <div className="font-mono text-lg sm:text-xl text-slate-900 tracking-widest drop-shadow-sm truncate">
+                                        {formatCardNumber(card.CardNumber)}
+                                    </div>
+                                </div>
+
+                                {/* Middle: Card Holder Name (Now Visible) */}
+                                <div className="z-10 mt-auto mb-3">
+                                    <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                                        Card Holder
+                                    </div>
+                                    <div className="text-slate-900 font-medium tracking-wide text-sm sm:text-base truncate uppercase">
+                                        {card.FirstName} {card.Father_Name}
+                                    </div>
+                                </div>
+
+                                {/* Bottom: Dates - UPDATED: Using formatDate function */}
+                                <div className="flex justify-between items-end z-10 border-t border-white/10 pt-2">
+                                    <div>
+                                        <div className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">
+                                            Issued
+                                        </div>
+                                        <div className="text-slate-900 font-mono text-xs">
+                                            {formatDate(card.issue_date)}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">
+                                            Expires
+                                        </div>
+                                        <div className="text-slate-900 font-mono text-xs">
+                                            {formatDate(card.expire_date)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Expired Overlay */}
+                            {card.status !== 'Active' && (
+                                <div className="absolute inset-0 z-20 rounded-xl bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
+                                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg transform -rotate-12 border border-white/50">
+                                        EXPIRED
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )) : (
+                        <div className="col-span-full text-center py-8 text-gray-500">No cards found matching your search.</div>
+                    )}
+                </div>
+            )}
 
             {/* Modal */}
             <Modal

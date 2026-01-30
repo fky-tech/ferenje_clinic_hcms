@@ -19,7 +19,8 @@ export default function Labs() {
     const [expandedCards, setExpandedCards] = useState({});
 
     useEffect(() => {
-        if (searchParams.get('filter') === 'today') {
+        const filterParam = searchParams.get('filter');
+        if (filterParam === 'today' || filterParam === 'urgent') {
             setFilterDate(new Date().toISOString().split('T')[0]);
         }
     }, [searchParams]);
@@ -81,11 +82,38 @@ export default function Labs() {
         return acc;
     }, {});
 
-    const filteredGroups = Object.values(groupedRequests).filter(group =>
-        group.patient.FirstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.patient.Father_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.patient.CardNumber?.includes(searchTerm)
-    );
+    const filteredGroups = Object.values(groupedRequests).filter(group => {
+        const matchesSearch = group.patient.FirstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            group.patient.Father_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            group.patient.CardNumber?.includes(searchTerm);
+
+        const isUrgentFilter = searchParams.get('filter') === 'urgent';
+        if (isUrgentFilter) {
+            // Check if any request in the group is urgent AND has pending lab tests
+            const hasUrgent = group.requests.some(r => {
+                const isUrgentParams = r.UrgentAttention === 1 || r.LabStatus?.toLowerCase() === 'urgent';
+                const hasPendingLab = parseInt(r.standard_tests_count || 0) > parseInt(r.standard_results_count || 0);
+                return isUrgentParams && hasPendingLab;
+            });
+            return matchesSearch && hasUrgent;
+        }
+
+        return matchesSearch;
+    }).sort((a, b) => {
+        // Sort groups: those with urgent requests come first
+        const hasUrgentPending = (requests) => requests.some(r => {
+            const isUrgentParams = r.UrgentAttention === 1 || r.LabStatus?.toLowerCase() === 'urgent';
+            const hasPendingLab = parseInt(r.standard_tests_count || 0) > parseInt(r.standard_results_count || 0);
+            return isUrgentParams && hasPendingLab;
+        });
+
+        const aUrgent = hasUrgentPending(a.requests);
+        const bUrgent = hasUrgentPending(b.requests);
+
+        if (aUrgent && !bUrgent) return -1;
+        if (!aUrgent && bUrgent) return 1;
+        return 0; // Keep original order (by accumulation) or sort by date/name
+    });
 
     return (
         <div className="space-y-6">
@@ -168,12 +196,12 @@ export default function Labs() {
                                             <div
                                                 key={request.request_id}
                                                 onClick={() => handleOpenResultModal(request)}
-                                                className="flex justify-between items-center p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
+                                                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
                                             >
-                                                <div className="flex items-center space-x-3">
-                                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                                                    <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
                                                     <div>
-                                                        <p className="font-medium text-gray-800">
+                                                        <p className="font-medium text-gray-800 text-sm">
                                                             Requested: {formatDateTime(request.RequestDate)}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
@@ -181,14 +209,14 @@ export default function Labs() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center space-x-3">
+                                                <div className="flex items-center justify-between w-full sm:w-auto space-x-3">
                                                     <span className={`px-2 py-1 text-xs rounded-full ${request.LabStatus === 'completed'
                                                         ? 'bg-green-100 text-green-800'
                                                         : 'bg-yellow-100 text-yellow-800'
                                                         }`}>
                                                         {request.LabStatus}
                                                     </span>
-                                                    <Button size="sm" variant="outline">
+                                                    <Button size="sm" variant="outline" className="text-xs">
                                                         {request.LabStatus === 'completed' ? 'View/Edit' : 'Enter Results'}
                                                     </Button>
                                                 </div>

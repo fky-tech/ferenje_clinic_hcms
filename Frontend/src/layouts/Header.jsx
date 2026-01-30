@@ -1,4 +1,4 @@
-import { Bell, User, Settings, LogOut } from 'lucide-react';
+import { Bell, User, Settings, LogOut, Menu, X } from 'lucide-react';
 import { formatDateTime } from '../utils/helpers';
 import { useState, useEffect, useRef } from 'react';
 import { getStoredUser, clearStoredUser, setStoredUser } from '../utils/helpers';
@@ -10,7 +10,7 @@ import Button from '../components/common/Button';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
-export default function Header() {
+export default function Header({ isMobileOpen, setIsMobileOpen }) {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -116,11 +116,11 @@ export default function Header() {
     };
 
     return (
-        <header className="bg-white border-b border-gray-200 px-6 py-4 relative z-20">
+        <header className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 relative z-20">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Welcome Back!</h2>
-                    <p className="text-sm text-gray-500">{formatDateTime(currentTime)}</p>
+                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Welcome!</h2>
+                    <p className="text-[10px] sm:text-sm text-gray-500">{formatDateTime(currentTime)}</p>
                 </div>
 
                 <div className="flex items-center space-x-4">
@@ -182,8 +182,17 @@ export default function Header() {
                         )}
                     </div>
 
-                    {/* User Info */}
-                    <div className="relative" ref={profileRef}>
+                    {/* Mobile Menu Button - Next to Bell */}
+                    <button
+                        onClick={() => setIsMobileOpen(!isMobileOpen)}
+                        className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        aria-label="Toggle Menu"
+                    >
+                        {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
+
+                    {/* User Info - Hidden on mobile, moved to Sidebar */}
+                    <div className="hidden sm:flex relative" ref={profileRef}>
                         <div
                             className="flex items-center space-x-3 pl-4 border-l border-gray-200 cursor-pointer"
                             onClick={() => setIsProfileOpen(!isProfileOpen)}

@@ -124,12 +124,12 @@ export default function DoctorPatientList() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-gray-900">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {activeFilter === 'today' ? "Today's Patients" : "My Patients"}
                 </h1>
                 {activeFilter === 'today' && (
-                    <Button variant="secondary" onClick={clearFilter} className="flex items-center gap-2">
+                    <Button variant="secondary" onClick={clearFilter} className="flex items-center gap-2 w-full sm:w-auto justify-center">
                         <X size={16} /> Clear Filter
                     </Button>
                 )}

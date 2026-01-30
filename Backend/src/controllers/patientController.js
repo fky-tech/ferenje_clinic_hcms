@@ -3,7 +3,7 @@ import Patient from '../models/patientModel.js';
 class PatientController {
     async createPatient(req, res) {
         try {
-            const { FirstName, DateOfBirth, Sex } = req.body;
+            const { FirstName, DateOfBirth, Sex, is_urgent } = req.body;
             if (!FirstName || !DateOfBirth || !Sex) {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
