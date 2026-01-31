@@ -4,7 +4,7 @@ import Table from '../../components/common/Table';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import api from '../../api/axios';
 import { API_ROUTES } from '../../utils/constants';
-import { getStoredUser, formatDateTime } from '../../utils/helpers';
+import { getStoredUser, formatDateTime, isDateToday } from '../../utils/helpers';
 
 export default function DoctorQueue() {
     const [queue, setQueue] = useState([]);
@@ -19,8 +19,14 @@ export default function DoctorQueue() {
     const fetchQueue = async () => {
         try {
             const res = await api.get(API_ROUTES.QUEUES);
-            const myQueue = res.data.filter(q => q.doctor_id == (user.person_id || user.id));
-            setQueue(myQueue);
+            // Filter by doctor_id, today's date, and non-completed status
+            const myQueue = res.data.filter(q =>
+                q.doctor_id == (user.person_id || user.id) &&
+                isDateToday(q.date) &&
+                q.status !== 'completed'
+            );
+            // Sort by queue position ASC
+            setQueue(myQueue.sort((a, b) => (a.position || 0) - (b.position || 0)));
         } catch (error) {
             console.error('Error fetching queue:', error);
         } finally {

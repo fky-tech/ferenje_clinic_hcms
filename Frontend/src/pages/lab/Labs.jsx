@@ -107,12 +107,23 @@ export default function Labs() {
             return isUrgentParams && hasPendingLab;
         });
 
+        const getLatestDate = (reqs) => Math.max(...reqs.map(r => new Date(r.RequestDate).getTime()));
+        const aDate = getLatestDate(a.requests);
+        const bDate = getLatestDate(b.requests);
+
+        // 1. Sort by Day (Newest day first)
+        const aDay = new Date(aDate).setHours(0, 0, 0, 0);
+        const bDay = new Date(bDate).setHours(0, 0, 0, 0);
+        if (bDay !== aDay) return bDay - aDay;
+
+        // 2. Same day: Urgent first
         const aUrgent = hasUrgentPending(a.requests);
         const bUrgent = hasUrgentPending(b.requests);
-
         if (aUrgent && !bUrgent) return -1;
         if (!aUrgent && bUrgent) return 1;
-        return 0; // Keep original order (by accumulation) or sort by date/name
+
+        // 3. Same day and urgency: Newest time first
+        return bDate - aDate;
     });
 
     return (

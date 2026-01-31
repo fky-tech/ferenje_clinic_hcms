@@ -98,13 +98,22 @@ export default function LabResultModal({ isOpen, onClose, request, onSuccess }) 
 
             await Promise.all(promises);
 
-            // Update main request status to completed
-            await api.put(`/lab-requests/${request.request_id}`, {
-                ...request,
-                LabStatus: 'completed'
-            });
+            // Fetch latest request data to check overall completion
+            const { data: updatedRequest } = await api.get(`/lab-requests/${request.request_id}`);
 
-            toast.success("Results saved successfully");
+            const standardFinished = parseInt(updatedRequest.standard_results_count) >= parseInt(updatedRequest.standard_tests_count);
+            const ultrasoundFinished = parseInt(updatedRequest.ultrasound_results_count) >= parseInt(updatedRequest.ultrasound_tests_count);
+
+            if (standardFinished && ultrasoundFinished) {
+                // Update main request status to completed only if both are done
+                await api.put(`/lab-requests/${request.request_id}`, {
+                    ...updatedRequest,
+                    LabStatus: 'completed'
+                });
+                toast.success("Results saved. Request marked as completed.");
+            } else {
+                toast.success("Standard results saved. Ultrasound results still pending.");
+            }
             addNotification(`Lab results ready for ${request.FirstName} ${request.Father_Name}`, 'success', ['doctor', 'lab_doctor']);
             onSuccess?.();
             onClose();

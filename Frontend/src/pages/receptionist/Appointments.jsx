@@ -24,6 +24,7 @@ export default function Appointments() {
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -49,7 +50,9 @@ export default function Appointments() {
   const fetchAppointments = async () => {
     try {
       const response = await api.get(API_ROUTES.APPOINTMENTS);
-      setAppointments(response.data.filter(a => a.status !== 'no_show'));
+      // Sort by appointment_id DESC (last added first)
+      const sortedRes = response.data.sort((a, b) => b.appointment_id - a.appointment_id);
+      setAppointments(sortedRes.filter(a => a.status !== 'no_show'));
     } catch (error) {
       console.error('Error fetching appointments:', error);
       // toast.error('Failed to load appointments');
@@ -120,6 +123,17 @@ export default function Appointments() {
     },
   ];
 
+  const filteredAppointments = appointments.filter(a => {
+    const searchLower = searchTerm.toLowerCase();
+    const patientName = `${a.FirstName || ''} ${a.Father_Name || ''}`.toLowerCase();
+    const doctorName = `Dr. ${a.doctor_first_name || ''} ${a.doctor_last_name || ''}`.toLowerCase();
+
+    return patientName.includes(searchLower) ||
+      doctorName.includes(searchLower) ||
+      a.CardNumber?.toLowerCase().includes(searchLower) ||
+      String(a.appointment_id).includes(searchTerm);
+  });
+
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -129,10 +143,19 @@ export default function Appointments() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Appointments</h1>
           <p className="text-gray-500 mt-1">Schedule and manage appointments</p>
         </div>
+        <div className="w-full sm:w-72">
+          <input
+            type="text"
+            placeholder="Search patient or doctor..."
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
-      <Card title={`Total Appointments: ${appointments.length}`} icon={CalendarIcon}>
-        <Table columns={columns} data={appointments} />
+      <Card title={`Total Appointments: ${filteredAppointments.length}`} icon={CalendarIcon}>
+        <Table columns={columns} data={filteredAppointments} />
       </Card>
 
       <Modal

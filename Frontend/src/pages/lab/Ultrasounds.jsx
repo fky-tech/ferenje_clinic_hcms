@@ -75,7 +75,32 @@ export default function Ultrasounds() {
         group.patient.FirstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         group.patient.Father_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         group.patient.CardNumber?.includes(searchTerm)
-    );
+    ).sort((a, b) => {
+        // Sort groups: those with urgent requests come first
+        const hasUrgentPending = (requests) => requests.some(r => {
+            const isUrgentParams = r.is_urgent == 1 || r.UrgentAttention == 1 || r.LabStatus?.toLowerCase() === 'urgent';
+            const hasPendingUS = parseInt(r.ultrasound_tests_count || 0) > parseInt(r.ultrasound_results_count || 0);
+            return isUrgentParams && hasPendingUS;
+        });
+
+        const getLatestDate = (reqs) => Math.max(...reqs.map(r => new Date(r.RequestDate).getTime()));
+        const aDate = getLatestDate(a.requests);
+        const bDate = getLatestDate(b.requests);
+
+        // 1. Sort by Day (Newest day first)
+        const aDay = new Date(aDate).setHours(0, 0, 0, 0);
+        const bDay = new Date(bDate).setHours(0, 0, 0, 0);
+        if (bDay !== aDay) return bDay - aDay;
+
+        // 2. Same day: Urgent first
+        const aUrgent = hasUrgentPending(a.requests);
+        const bUrgent = hasUrgentPending(b.requests);
+        if (aUrgent && !bUrgent) return -1;
+        if (!aUrgent && bUrgent) return 1;
+
+        // 3. Same day and urgency: Newest time first
+        return bDate - aDate;
+    });
 
     return (
         <div className="space-y-6">

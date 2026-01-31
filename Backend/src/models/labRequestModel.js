@@ -59,7 +59,7 @@ class LabRequest {
                     JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
                     WHERE lrt.request_id = lr.request_id AND alt.TestCategory = 'Ultrasound') as ultrasound_tests_count,
                    (SELECT COUNT(*) FROM labtestresult ltr WHERE ltr.request_id = lr.request_id) as standard_results_count,
-                   (SELECT COUNT(*) FROM ultrasound_test_results utr WHERE utr.request_id = lr.request_id) as ultrasound_results_count
+                   (SELECT COUNT(DISTINCT test_id) FROM ultrasound_test_results utr WHERE utr.request_id = lr.request_id) as ultrasound_results_count
             FROM lab_request lr
             JOIN patientvisitrecord pvr ON lr.VisitRecordID = pvr.VisitRecordID
             JOIN card c ON pvr.card_id = c.card_id
@@ -74,9 +74,17 @@ class LabRequest {
     static async findById(id) {
         const [rows] = await db.execute(`
             SELECT lr.*, 
-                   p.FirstName, p.Father_Name,
-                   c.CardNumber,
-                   per.first_name as doctor_first_name, per.last_name as doctor_last_name
+                   p.FirstName, p.Father_Name, p.Sex, p.Age,
+                   c.CardNumber, c.card_id,
+                   per.first_name as doctor_first_name, per.last_name as doctor_last_name,
+                   (SELECT COUNT(*) FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id AND LOWER(alt.TestCategory) != 'ultrasound') as standard_tests_count,
+                   (SELECT COUNT(*) FROM lab_request_tests lrt 
+                    JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
+                    WHERE lrt.request_id = lr.request_id AND LOWER(alt.TestCategory) = 'ultrasound') as ultrasound_tests_count,
+                   (SELECT COUNT(*) FROM labtestresult ltr WHERE ltr.request_id = lr.request_id) as standard_results_count,
+                   (SELECT COUNT(DISTINCT test_id) FROM ultrasound_test_results utr WHERE utr.request_id = lr.request_id) as ultrasound_results_count
             FROM lab_request lr
             JOIN patientvisitrecord pvr ON lr.VisitRecordID = pvr.VisitRecordID
             JOIN card c ON pvr.card_id = c.card_id
@@ -186,7 +194,7 @@ class LabRequest {
                    (SELECT COUNT(*) FROM lab_request_tests lrt 
                     JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 
                     WHERE lrt.request_id = lr.request_id AND LOWER(alt.TestCategory) = 'ultrasound') as ultrasound_tests_count,
-                   (SELECT COUNT(*) FROM ultrasound_test_results WHERE request_id = lr.request_id) as ultrasound_results_count,
+                   (SELECT COUNT(DISTINCT test_id) FROM ultrasound_test_results WHERE request_id = lr.request_id) as ultrasound_results_count,
                    (SELECT SUM(alt.price) 
                     FROM lab_request_tests lrt 
                     JOIN available_lab_tests alt ON lrt.test_id = alt.test_id 

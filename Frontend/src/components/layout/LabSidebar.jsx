@@ -46,7 +46,7 @@ export default function LabSidebar() {
                         className={`flex items-center p-3 rounded-lg transition-colors ${isActive('/lab/todays-ultrasounds')}`}
                     >
                         <Activity className="w-5 h-5 mr-3" />
-                        Today's Ultrasounds
+                        Ultrasounds
                     </Link>
                 ) : (
                     <Link
@@ -54,7 +54,7 @@ export default function LabSidebar() {
                         className={`flex items-center p-3 rounded-lg transition-colors ${isActive('/lab/todays-labs')}`}
                     >
                         <ClipboardList className="w-5 h-5 mr-3" />
-                        Today's Labs
+                        Labs
                     </Link>
                 )}
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ETHIOPIAN_MONTHS, ethToGregorianDate, getEthiopianParts } from '../../utils/dateUtils';
 
-export default function EthiopianDatePicker({ label, value, onChange, error, required, disabled }) {
+export default function EthiopianDatePicker({ label, value, onChange, error, required, disabled, minDateToday }) {
     const [parts, setParts] = useState({
         day: 1,
         month: 1,
@@ -15,11 +15,12 @@ export default function EthiopianDatePicker({ label, value, onChange, error, req
                 setParts({ day: eth.day, month: eth.month, year: eth.year });
             }
         } else {
-            // Default to today if empty and needed?
             const ethToday = getEthiopianParts(new Date());
             if (ethToday) setParts(ethToday);
         }
     }, [value]);
+
+    const ethToday = getEthiopianParts(new Date()) || { day: 1, month: 1, year: 2016 };
 
     const handlePartChange = (name, val) => {
         const newParts = { ...parts, [name]: parseInt(val) };
@@ -53,9 +54,20 @@ export default function EthiopianDatePicker({ label, value, onChange, error, req
                     disabled={disabled}
                     className={`w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed appearance-none' : 'focus:border-blue-500'}`}
                 >
-                    {[...Array(30).keys()].map(i => (
-                        <option key={i + 1} value={i + 1}>{i + 1}</option>
-                    ))}
+                    {[...Array(30).keys()].map(i => {
+                        const dayNum = i + 1;
+                        let isDisabled = false;
+                        if (minDateToday) {
+                            if (parts.year < ethToday.year) isDisabled = true;
+                            else if (parts.year === ethToday.year && parts.month < ethToday.month) isDisabled = true;
+                            else if (parts.year === ethToday.year && parts.month === ethToday.month && dayNum < ethToday.day) isDisabled = true;
+                        }
+                        return (
+                            <option key={dayNum} value={dayNum} disabled={isDisabled}>
+                                {dayNum}
+                            </option>
+                        );
+                    })}
                 </select>
                 <select
                     value={parts.month}
@@ -63,15 +75,26 @@ export default function EthiopianDatePicker({ label, value, onChange, error, req
                     disabled={disabled}
                     className={`w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed appearance-none' : 'focus:border-blue-500'}`}
                 >
-                    {ETHIOPIAN_MONTHS.map((m, idx) => (
-                        <option key={idx + 1} value={idx + 1}>{m}</option>
-                    ))}
+                    {ETHIOPIAN_MONTHS.map((m, idx) => {
+                        const monthNum = idx + 1;
+                        let isDisabled = false;
+                        if (minDateToday) {
+                            if (parts.year < ethToday.year) isDisabled = true;
+                            else if (parts.year === ethToday.year && monthNum < ethToday.month) isDisabled = true;
+                        }
+                        return (
+                            <option key={monthNum} value={monthNum} disabled={isDisabled}>
+                                {m}
+                            </option>
+                        );
+                    })}
                 </select>
                 <input
                     type="number"
                     value={parts.year}
                     onChange={(e) => handlePartChange('year', e.target.value)}
                     disabled={disabled}
+                    min={minDateToday ? ethToday.year : 0}
                     className={`w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'focus:border-blue-500'}`}
                     placeholder="Year"
                 />

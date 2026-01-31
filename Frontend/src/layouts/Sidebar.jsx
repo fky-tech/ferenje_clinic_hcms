@@ -63,7 +63,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
             {
                 path: isUltrasound ? '/lab/todays-ultrasounds' : '/lab/todays-labs',
                 icon: isUltrasound ? Activity : FlaskConical,
-                label: isUltrasound ? "Today's Ultrasounds" : "Today's Labs"
+                label: isUltrasound ? "Ultrasounds" : "Labs"
             },
             { path: '/lab/search-patient', icon: Search, label: 'Search Patients' },
         ];

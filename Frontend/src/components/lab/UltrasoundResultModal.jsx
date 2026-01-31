@@ -139,20 +139,16 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
 
             await api.post('/ultrasound-test-results', payload);
 
-            // Fetch the latest results to check if all tests for this request are completed
-            // We use a fresh fetch to be sure (including the one we just saved)
-            const updatedResultsRes = await api.get(`/ultrasound-test-results/request/${request.request_id}`);
-            const updatedResults = updatedResultsRes.data;
+            // Fetch the latest request data to check overall completion (standard + ultrasound)
+            const { data: updatedRequest } = await api.get(`/lab-requests/${request.request_id}`);
 
-            // Check if every test in requestTests has at least one result
-            const allTestsCompleted = requestTests.every(test =>
-                updatedResults.some(r => r.test_id === test.test_id)
-            );
+            const standardFinished = parseInt(updatedRequest.standard_results_count) >= parseInt(updatedRequest.standard_tests_count);
+            const ultrasoundFinished = parseInt(updatedRequest.ultrasound_results_count) >= parseInt(updatedRequest.ultrasound_tests_count);
 
-            if (allTestsCompleted) {
-                // Only update main request status to completed if ALL tests have results
+            if (standardFinished && ultrasoundFinished) {
+                // Only update main request status to completed if ALL tests (standard + ultrasound) have results
                 await api.put(`/lab-requests/${request.request_id}`, {
-                    ...request,
+                    ...updatedRequest,
                     LabStatus: 'completed'
                 });
                 toast.success("All results saved. Request completed.");
@@ -160,16 +156,17 @@ export default function UltrasoundResultModal({ isOpen, onClose, request, onSucc
                 onClose();
             } else {
                 // If incomplete, just notify saving of this specific result
-                const remainingCount = requestTests.length - new Set(updatedResults.map(r => r.test_id)).size;
-                toast.success(`${selectedTest.test_name} saved. ${remainingCount} test(s) remaining.`);
+                const remainingUS = parseInt(updatedRequest.ultrasound_tests_count) - parseInt(updatedRequest.ultrasound_results_count);
+                const remainingStd = parseInt(updatedRequest.standard_tests_count) - parseInt(updatedRequest.standard_results_count);
+
+                let msg = `${selectedTest.test_name} saved.`;
+                if (remainingUS > 0) msg += ` ${remainingUS} ultrasound(s) remaining.`;
+                if (remainingStd > 0) msg += ` Standard lab tests are still pending.`;
+
+                toast.success(msg);
 
                 // Return to the list view to allow selecting the next test
                 setSelectedTest(null);
-                // We do NOT call onSuccess/onClose here (assuming onSuccess means "request finished" for the parent list refresh??)
-                // Actually, we should probably trigger a refresh so the parent knows we made progress, but we shouldn't close the modal if the user intends to continue?
-                // The user said "not allow to save if all ... not setted".
-                // If I keep the modal open, they can proceed.
-                // Re-fetching initial data to update the "Enter Results" status indicators in the list would be nice.
                 fetchInitialData();
             }
         } catch (error) {

@@ -31,6 +31,17 @@ export default function AddAppointmentModal({ isOpen, onClose, cardId, doctorId,
                 return;
             }
 
+            // Check if date is in the past
+            const selectedDate = new Date(dateToUse);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate < today) {
+                toast.error("Cannot schedule appointments for past dates");
+                setLoading(false);
+                return;
+            }
+
             await api.post(API_ROUTES.APPOINTMENTS, {
                 card_id: cardId,
                 doctor_id: doctorId,
@@ -57,6 +68,7 @@ export default function AddAppointmentModal({ isOpen, onClose, cardId, doctorId,
                     value={formData.appointment_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, appointment_date: e.target.value }))}
                     required
+                    minDateToday={true}
                 />
                 <div className="flex justify-end pt-4 space-x-2">
                     <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
