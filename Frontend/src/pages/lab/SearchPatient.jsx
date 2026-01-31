@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, User } from 'lucide-react';
 import api from '../../api/axios';
@@ -10,23 +10,39 @@ export default function SearchPatient() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false);
+    const [hasTyped, setHasTyped] = useState(false);
     const navigate = useNavigate();
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        if (!searchTerm.trim()) return;
+    // Debounced Search Effect
+    useEffect(() => {
+        const delaySearch = setTimeout(() => {
+            if (searchTerm.trim()) {
+                performSearch();
+            } else {
+                setSearchResults([]);
+                setHasTyped(false);
+            }
+        }, 500);
 
+        return () => clearTimeout(delaySearch);
+    }, [searchTerm]);
+
+    const performSearch = async () => {
         setLoading(true);
         try {
             const response = await api.get(`/cards/search?query=${searchTerm}`);
             setSearchResults(response.data);
-            setHasSearched(true);
+            setHasTyped(true);
         } catch (error) {
             console.error('Error searching patients:', error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearch = (e) => {
+        if (e) e.preventDefault();
+        performSearch();
     };
 
     return (
@@ -77,7 +93,7 @@ export default function SearchPatient() {
                             </Card>
                         ))
                     ) : (
-                        hasSearched && (
+                        hasTyped && (
                             <div className="col-span-full text-center py-10 text-gray-500">
                                 No patients found matching "{searchTerm}"
                             </div>

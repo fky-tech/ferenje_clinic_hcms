@@ -168,7 +168,7 @@ export default function Dashboard() {
 
             {/* Recent Requests */}
             <div className="bg-white rounded-lg border border-gray-200">
-                <div className="p-2 border-b border-gray-100"><h3 className="text-sm font-bold text-gray-800 flex items-center gap-1"><ClipboardList size={14} className="text-blue-600" /> Recent {type === 'lab' ? 'Lab' : 'Ultrasound'} Requests</h3></div>
+                <div className="p-2 border-b border-gray-100"><h3 className="text-sm font-bold text-gray-800 flex items-center gap-1"><ClipboardList size={14} className="text-primary-600" /> Recent {type === 'lab' ? 'Lab' : 'Ultrasound'} Requests</h3></div>
                 <div className="divide-y divide-gray-100">
                     {data.requests.length > 0 ? (
                         data.requests.map((request, index) => (
@@ -206,7 +206,7 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-500">Today's overview</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded flex items-center gap-1">
+                    <div className="bg-primary-50 text-primary-600 text-xs px-3 py-1 rounded flex items-center gap-1">
                         <Clock size={12} />
                         {currentTime}
                     </div>
@@ -216,13 +216,13 @@ export default function Dashboard() {
 
             {/* Quick Stats Global */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="bg-gradient-to-r from-gray-900 to-blue-700/70 text-white p-3 rounded-lg shadow">
-                    <div><p className="text-xs text-blue-100 mb-1">Total Requests</p><p className="text-xl font-bold">{stats.totalRequests}</p></div>
+                <div className="bg-gradient-to-r from-gray-900 to-primary-700/70 text-white p-3 rounded-lg shadow">
+                    <div><p className="text-xs text-primary-100 mb-1">Total Requests</p><p className="text-xl font-bold">{stats.totalRequests}</p></div>
                 </div>
-                <div className="bg-gradient-to-r from-gray-900 to-blue-700/70 text-white p-3 rounded-lg shadow">
-                    <div><p className="text-xs text-purple-100 mb-1">Today's Total</p><p className="text-xl font-bold">{stats.todayRequests}</p></div>
+                <div className="bg-gradient-to-r from-gray-900 to-primary-700/70 text-white p-3 rounded-lg shadow">
+                    <div><p className="text-xs text-primary-100 mb-1">Today's Total</p><p className="text-xl font-bold">{stats.todayRequests}</p></div>
                 </div>
-                <div className="bg-gradient-to-r from-gray-900 to-blue-700/70 text-white p-3 rounded-lg shadow">
+                <div className="bg-gradient-to-r from-gray-900 to-primary-700/70 text-white p-3 rounded-lg shadow">
                     <div><p className="text-xs text-emerald-100 mb-1">Available Tests</p><p className="text-xl font-bold">{stats.totalAvailableTests}</p></div>
                 </div>
             </div>
@@ -233,13 +233,13 @@ export default function Dashboard() {
                     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-3">
                         <button
                             onClick={() => setActiveTab('lab')}
-                            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'lab' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'lab' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             Laboratory
                         </button>
                         <button
                             onClick={() => setActiveTab('ultrasound')}
-                            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'ultrasound' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'ultrasound' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             Ultrasound
                         </button>
@@ -259,11 +259,11 @@ export default function Dashboard() {
             <div>
                 <h3 className="text-sm font-bold text-gray-800 mb-2">Quick Actions</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    <button onClick={() => navigate('/lab/search-patient')} className="bg-white p-2 rounded border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition text-center">
-                        <ClipboardList size={14} className="text-blue-600 mx-auto mb-1" /><span className="text-xs font-medium text-gray-800">Search Patient</span>
+                    <button onClick={() => navigate('/lab/search-patient')} className="bg-white p-2 rounded border border-gray-200 hover:bg-primary-50 hover:border-primary-200 transition text-center">
+                        <ClipboardList size={14} className="text-primary-600 mx-auto mb-1" /><span className="text-xs font-medium text-gray-800">Search Patient</span>
                     </button>
-                    <button onClick={() => navigate(activeTab === 'lab' ? '/lab/todays-labs' : '/lab/todays-ultrasounds')} className="bg-white p-2 rounded border border-gray-200 hover:bg-purple-50 hover:border-purple-200 transition text-center">
-                        <FlaskConical size={14} className="text-purple-600 mx-auto mb-1" /><span className="text-xs font-medium text-gray-800">All {activeTab === 'lab' ? 'Labs' : 'Ultrasounds'}</span>
+                    <button onClick={() => navigate(activeTab === 'lab' ? '/lab/todays-labs' : '/lab/todays-ultrasounds')} className="bg-white p-2 rounded border border-gray-200 hover:bg-primary-50 hover:border-primary-200 transition text-center">
+                        <FlaskConical size={14} className="text-primary-600 mx-auto mb-1" /><span className="text-xs font-medium text-gray-800">All {activeTab === 'lab' ? 'Labs' : 'Ultrasounds'}</span>
                     </button>
                 </div>
             </div>

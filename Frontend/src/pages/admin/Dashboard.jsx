@@ -114,10 +114,10 @@ export default function Dashboard() {
 
                 {/* Removed Today's Patients Card as requested */}
 
-                <div className="bg-gradient-to-br  from-gray-900 to-blue-700/70 text-white p-3 rounded-lg shadow">
+                <div className="bg-gradient-to-br  from-gray-900 to-primary-700/70 text-white p-3 rounded-lg shadow">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-xs text-purple-100 mb-1">Doctors</p>
+                            <p className="text-xs text-primary-100 mb-1">Doctors</p>
                             <p className="text-lg font-bold">{stats.totalDoctors}</p>
                         </div>
                         <UserPlus size={14} className="opacity-80" />
@@ -179,7 +179,7 @@ export default function Dashboard() {
                     {/* Doctors Card */}
                     <div
                         onClick={() => navigate('/admin/doctors')}
-                        className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                        className="group relative overflow-hidden bg-gradient-to-br from-primary-50 to-indigo-50 border border-primary-200 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                     >
 
                         <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function Dashboard() {
                         </div>
                         <div className="mt-3 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="px-2 py-0.5 bg-purple-100 rounded text-xs text-purple-700 font-medium">
+                                <div className="px-2 py-0.5 bg-primary-100 rounded text-xs text-primary-700 font-medium">
                                     {stats.totalDoctors} active
                                 </div>
                                 <div className="text-[10px] text-gray-500">• Profiles</div>

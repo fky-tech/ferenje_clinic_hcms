@@ -62,18 +62,18 @@ export default function LabResultsModal({ isOpen, onClose, labRequest, labResult
 
                     {/* Ultrasound Report Shortcut */}
                     {hasUltrasound && (
-                        <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-100 flex items-center justify-between">
-                            <div className="flex items-center space-x-3 text-purple-700">
+                        <div className="mb-6 p-4 bg-primary-50 rounded-lg border border-primary-100 flex items-center justify-between">
+                            <div className="flex items-center space-x-3 text-primary-700">
                                 <Activity className="w-6 h-6" />
                                 <div>
                                     <p className="font-bold">Ultrasound Imaging Report Available</p>
-                                    <p className="text-xs text-purple-600">This request contains ultrasound studies.</p>
+                                    <p className="text-xs text-primary-600">This request contains ultrasound studies.</p>
                                 </div>
                             </div>
                             <Button
                                 variant="primary"
                                 onClick={() => setIsUltrasoundViewModalOpen(true)}
-                                className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
+                                className="shadow-sm"
                             >
                                 View Ultrasound Report
                             </Button>

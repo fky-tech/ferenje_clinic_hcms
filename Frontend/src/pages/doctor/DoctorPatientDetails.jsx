@@ -486,14 +486,14 @@ export default function DoctorPatientDetails() {
                                                                         className="text-sm border p-2 rounded hover:bg-blue-50 cursor-pointer flex justify-between items-center group"
                                                                     >
                                                                         <span>Request #{lab.request_id}</span>
-                                                                        <span className="text-xs text-blue-600 font-medium group-hover:underline">View Results</span>
+                                                                        <span className="text-xs text-primary-600 font-medium group-hover:underline">View Results</span>
                                                                     </div>
                                                                 ))
                                                             ) : <p className="text-sm text-gray-500">No labs for this visit</p>}
                                                         </div>
 
                                                         <h3 className="font-semibold text-gray-800 border-b pb-2 mb-2 flex items-center">
-                                                            <Activity className="w-4 h-4 mr-2 text-purple-500" /> Ultrasounds
+                                                            <Activity className="w-4 h-4 mr-2 text-primary-600" /> Ultrasounds
                                                         </h3>
                                                         <div className="space-y-2">
                                                             {labResults.filter(l => {
@@ -510,10 +510,10 @@ export default function DoctorPatientDetails() {
                                                                 }).map(lab => (
                                                                     <div key={lab.request_id}
                                                                         onClick={() => handleLabResultsClick(lab)}
-                                                                        className="text-sm border p-2 rounded hover:bg-purple-50 cursor-pointer flex justify-between items-center group border-purple-100"
+                                                                        className="text-sm border p-2 rounded hover:bg-primary-50 cursor-pointer flex justify-between items-center group border-primary-100"
                                                                     >
-                                                                        <span className="text-purple-700 font-medium">Ultrasound #{lab.request_id}</span>
-                                                                        <span className="text-xs text-purple-600 font-medium group-hover:underline">View Report</span>
+                                                                        <span className="text-primary-700 font-medium">Ultrasound #{lab.request_id}</span>
+                                                                        <span className="text-xs text-primary-600 font-medium group-hover:underline">View Ultrasound Report</span>
                                                                     </div>
                                                                 ))
                                                             ) : <p className="text-sm text-gray-500">No ultrasound results for this visit</p>}
@@ -539,16 +539,23 @@ export default function DoctorPatientDetails() {
                                         >
                                             <div className="flex items-center space-x-3">
                                                 {lab.is_ultrasound && (
-                                                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Ultrasound</span>
+                                                    <span className="bg-primary-100 text-primary-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Ultrasound</span>
                                                 )}
                                                 <div>
                                                     <p className="font-medium">Request #{lab.request_id}</p>
                                                     <p className="text-xs text-gray-500">{formatDateTime(lab.RequestDate)}</p>
                                                 </div>
                                             </div>
-                                            <span className={`px-2 py-1 rounded text-xs ${lab.LabStatus === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                {lab.LabStatus}
-                                            </span>
+                                            <div className="flex flex-col items-end gap-1">
+                                                <span className={`px-2 py-1 rounded text-xs ${lab.LabStatus === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                    {lab.LabStatus}
+                                                </span>
+                                                {lab.is_ultrasound && (
+                                                    <span className="text-xs text-primary-600 font-medium flex items-center">
+                                                        View Ultrasound Report <ChevronRight className="w-3 h-3 ml-0.5" />
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     ))
                                 )}

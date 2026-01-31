@@ -89,7 +89,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
 
     const SidebarContent = () => (
         <div className="flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300">
-            <div className={`h-20 flex items-center border-b border-gray-200 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-6'}`}>
+            <div className={`h-20 flex items-center border-b border-gray-200 ${isCollapsed ? 'lg:justify-center px-2' : 'justify-between px-6'}`}>
                 {!isCollapsed && (
                     <div className="flex items-center gap-1">
                         <div className="w-14 h-14  rounded-full overflow-hidden">
@@ -106,12 +106,22 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
                         </div>
                     </div>
                 )}
+                {/* Desktop Collapse Toggle */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className={`p-2 rounded-lg hover:bg-gray-100 text-gray-500 ${isCollapsed ? '' : 'ml-2'}`}
+                    className={`hidden lg:block p-2 rounded-lg hover:bg-gray-100 text-gray-500 ${isCollapsed ? '' : 'ml-2'}`}
                     title={isCollapsed ? "Expand" : "Collapse"}
                 >
                     <Menu className="w-6 h-6" />
+                </button>
+
+                {/* Mobile Close Button */}
+                <button
+                    onClick={() => setIsMobileOpen(false)}
+                    className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-500"
+                    aria-label="Close Menu"
+                >
+                    <X className="w-6 h-6" />
                 </button>
             </div>
 

@@ -50,14 +50,14 @@ export default function UltrasoundViewModal({ isOpen, onClose, request }) {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Ultrasound Report: ${request?.FirstName}`} maxWidth="3xl">
             <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4 bg-purple-50 p-4 rounded-xl text-sm border border-purple-100">
+                <div className="grid grid-cols-2 gap-4 bg-primary-50 p-4 rounded-xl text-sm border border-primary-100">
                     <div>
-                        <p className="text-purple-600 font-bold text-xs uppercase tracking-widest mb-1">Patient</p>
+                        <p className="text-primary-600 font-bold text-xs uppercase tracking-widest mb-1">Patient</p>
                         <p className="font-bold text-gray-900 text-base">{request?.FirstName} {request?.Father_Name}</p>
                         <p className="text-gray-500">{request?.Age} yrs • {request?.Sex}</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-purple-600 font-bold text-xs uppercase tracking-widest mb-1">Requested By</p>
+                        <p className="text-primary-600 font-bold text-xs uppercase tracking-widest mb-1">Requested By</p>
                         <p className="font-bold text-gray-900">Dr. {request?.doctor_first_name} {request?.doctor_last_name}</p>
                         <p className="text-gray-500">#{request?.request_id}</p>
                     </div>
@@ -65,7 +65,7 @@ export default function UltrasoundViewModal({ isOpen, onClose, request }) {
 
                 {loading ? (
                     <div className="flex flex-col items-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-4"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mb-4"></div>
                         <p className="text-gray-500 font-medium">Loading report data...</p>
                     </div>
                 ) : !hasResults ? (
@@ -79,12 +79,12 @@ export default function UltrasoundViewModal({ isOpen, onClose, request }) {
                             <div className="space-y-4">
                                 <button
                                     onClick={() => setSelectedFinding(null)}
-                                    className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center mb-2"
+                                    className="text-xs font-bold text-primary-600 hover:text-primary-800 flex items-center mb-2"
                                 >
                                     ← Back to {selectedTestName} Findings
                                 </button>
-                                <div className="border-l-4 border-purple-400 pl-4 py-1">
-                                    <h4 className="font-bold text-sm text-purple-700 uppercase tracking-wider mb-2">{selectedFinding.title}</h4>
+                                <div className="border-l-4 border-primary-400 pl-4 py-1">
+                                    <h4 className="font-bold text-sm text-primary-700 uppercase tracking-wider mb-2">{selectedFinding.title}</h4>
                                     <div className="space-y-1">
                                         {selectedFinding.descriptions.map((desc, dIdx) => {
                                             let content = desc;
@@ -107,7 +107,7 @@ export default function UltrasoundViewModal({ isOpen, onClose, request }) {
                             <div className="space-y-4">
                                 <button
                                     onClick={() => setSelectedTestName(null)}
-                                    className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center mb-2"
+                                    className="text-xs font-bold text-primary-600 hover:text-primary-800 flex items-center mb-2"
                                 >
                                     ← Back to Study List
                                 </button>
@@ -120,13 +120,13 @@ export default function UltrasoundViewModal({ isOpen, onClose, request }) {
                                         <div
                                             key={idx}
                                             onClick={() => setSelectedFinding(finding)}
-                                            className="p-4 border border-purple-100 rounded-xl bg-white hover:bg-purple-50 cursor-pointer transition-all flex justify-between items-center shadow-sm group"
+                                            className="p-4 border border-primary-100 rounded-xl bg-white hover:bg-primary-50 cursor-pointer transition-all flex justify-between items-center shadow-sm group"
                                         >
-                                            <span className="font-bold text-gray-800 group-hover:text-purple-700 uppercase tracking-wide">
+                                            <span className="font-bold text-gray-800 group-hover:text-primary-700 uppercase tracking-wide">
                                                 {finding.title || 'Untitled Finding'}
                                             </span>
-                                            <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center group-hover:bg-purple-100">
-                                                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100">
+                                                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                                                 </svg>
                                             </div>
@@ -153,15 +153,15 @@ export default function UltrasoundViewModal({ isOpen, onClose, request }) {
                                         <div
                                             key={idx}
                                             onClick={() => setSelectedTestName(testName)}
-                                            className="p-4 border border-purple-100 rounded-xl bg-white hover:bg-purple-50 cursor-pointer transition-all flex justify-between items-center shadow-sm group"
+                                            className="p-4 border border-primary-100 rounded-xl bg-white hover:bg-primary-50 cursor-pointer transition-all flex justify-between items-center shadow-sm group"
                                         >
-                                            <span className="font-bold text-gray-800 group-hover:text-purple-700 text-lg">
+                                            <span className="font-bold text-gray-800 group-hover:text-primary-700 text-lg">
                                                 {testName}
                                             </span>
                                             <div className="flex items-center space-x-2 text-sm text-gray-500">
                                                 <span>{testGroups[testName].length} Findings</span>
-                                                <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center group-hover:bg-purple-100">
-                                                    <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100">
+                                                    <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                                                     </svg>
                                                 </div>

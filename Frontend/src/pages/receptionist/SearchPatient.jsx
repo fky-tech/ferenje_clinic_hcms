@@ -118,14 +118,6 @@ export default function SearchPatient() {
                             <Eye size={14} />
                             <span className="ml-1">View</span>
                         </Button>
-                        <Button size="xs" variant="ghost" className="text-gray-600 hover:bg-gray-100" title="Schedule" onClick={() => handleAction('schedule', row)}>
-                            <Calendar size={14} />
-                            <span className="ml-1">Schedule</span>
-                        </Button>
-                        <Button size="xs" variant="ghost" className="text-gray-600 hover:bg-gray-100" title="Add to Queue" onClick={() => handleAction('queue', row)}>
-                            <Users size={14} />
-                            <span className="ml-1">Queue</span>
-                        </Button>
                     </div>
                 </div>
             ),
@@ -214,24 +206,6 @@ export default function SearchPatient() {
                         onClick={() => handleAction('view', row)}
                     >
                         <Eye size={14} />
-                    </Button>
-                    <Button
-                        size="xs"
-                        variant="ghost"
-                        className="text-gray-600 hover:bg-gray-100"
-                        title="Schedule"
-                        onClick={() => handleAction('schedule', row)}
-                    >
-                        <Calendar size={14} />
-                    </Button>
-                    <Button
-                        size="xs"
-                        variant="ghost"
-                        className="text-gray-600 hover:bg-gray-100"
-                        title="Add to Queue"
-                        onClick={() => handleAction('queue', row)}
-                    >
-                        <Users size={14} />
                     </Button>
                 </div>
             ),

@@ -236,7 +236,7 @@ export default function Reports() {
                     description="Export record of all patient visits, check-ins, and basic demographics."
                     icon={Users}
                     type="patients"
-                    colorClass="bg-purple-500"
+                    colorClass="bg-blue-600"
                 />
             </div>
 

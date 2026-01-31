@@ -139,7 +139,7 @@ export default function Labs() {
                             placeholder="Search patient..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 w-full sm:w-64"
+                            className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 w-full sm:w-64"
                         />
                         <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
                     </div>
@@ -166,7 +166,7 @@ export default function Labs() {
                                     className="p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center"
                                 >
                                     <div className="flex items-center space-x-4">
-                                        <div className="bg-blue-100 p-2 rounded-full text-blue-600">
+                                        <div className="bg-primary-100 p-2 rounded-full text-primary-600">
                                             <FlaskConical className="w-6 h-6" />
                                         </div>
                                         <div>
@@ -196,7 +196,7 @@ export default function Labs() {
                                             <div
                                                 key={request.request_id}
                                                 onClick={() => handleOpenResultModal(request)}
-                                                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
+                                                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition-all"
                                             >
                                                 <div className="flex items-center space-x-3 w-full sm:w-auto">
                                                     <Calendar className="w-4 h-4 text-gray-400 shrink-0" />

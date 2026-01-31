@@ -182,14 +182,16 @@ export default function Header({ isMobileOpen, setIsMobileOpen }) {
                         )}
                     </div>
 
-                    {/* Mobile Menu Button - Next to Bell */}
-                    <button
-                        onClick={() => setIsMobileOpen(!isMobileOpen)}
-                        className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        aria-label="Toggle Menu"
-                    >
-                        {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
+                    {/* Mobile Menu Button - Next to Bell (Hidden when open) */}
+                    {!isMobileOpen && (
+                        <button
+                            onClick={() => setIsMobileOpen(true)}
+                            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            aria-label="Open Menu"
+                        >
+                            <Menu className="w-6 h-6" />
+                        </button>
+                    )}
 
                     {/* User Info - Hidden on mobile, moved to Sidebar */}
                     <div className="hidden sm:flex relative" ref={profileRef}>

@@ -15,7 +15,7 @@ export default function LabSidebar() {
 
     const isActive = (path) => {
         return location.pathname.startsWith(path)
-            ? 'bg-blue-600 text-white'
+            ? 'bg-primary-600 text-white'
             : 'text-gray-300 hover:bg-gray-700 hover:text-white';
     };
 

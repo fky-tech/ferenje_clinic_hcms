@@ -106,8 +106,8 @@ export default function DoctorDashboard() {
                 time: appt.appointment_date,
                 status: appt.status,
                 icon: Calendar,
-                color: 'text-purple-600',
-                bg: 'bg-purple-100'
+                color: 'text-blue-600',
+                bg: 'bg-blue-100'
             });
         });
 
@@ -125,14 +125,14 @@ export default function DoctorDashboard() {
                 case 'in_progress':
                     status = 'in-progress';
                     icon = Clock;
-                    color = 'text-blue-600';
-                    bg = 'bg-blue-100';
+                    color = 'text-primary-600';
+                    bg = 'bg-primary-100';
                     break;
                 default:
                     status = 'new';
                     icon = Bell;
-                    color = 'text-blue-800';
-                    bg = 'bg-blue-100';
+                    color = 'text-primary-800';
+                    bg = 'bg-primary-100';
             }
 
             activities.push({
@@ -160,8 +160,8 @@ export default function DoctorDashboard() {
             time: new Date().toISOString(),
             status: 'scheduled',
             icon: Calendar,
-            color: 'text-purple-600',
-            bg: 'bg-purple-100'
+            color: 'text-blue-600',
+            bg: 'bg-blue-100'
         },
         {
             id: 2,
@@ -182,8 +182,8 @@ export default function DoctorDashboard() {
             time: new Date().toISOString(),
             status: 'in-progress',
             icon: Clock,
-            color: 'text-blue-600',
-            bg: 'bg-blue-100'
+            color: 'text-primary-600',
+            bg: 'bg-primary-100'
         },
         {
             id: 4,
@@ -212,9 +212,9 @@ export default function DoctorDashboard() {
     const getStatusBadge = (status) => {
         const config = {
             'completed': { text: 'Completed', color: 'bg-green-100 text-green-800 border-green-200' },
-            'in-progress': { text: 'In Progress', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-            'scheduled': { text: 'Scheduled', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-            'new': { text: 'New', color: 'bg-blue-100 text-blue-800 border-blue-200' }
+            'in-progress': { text: 'In Progress', color: 'bg-primary-100 text-primary-800 border-primary-200' },
+            'scheduled': { text: 'Scheduled', color: 'bg-primary-100 text-primary-800 border-primary-200' },
+            'new': { text: 'New', color: 'bg-primary-100 text-primary-800 border-primary-200' }
         };
 
         const { text, color } = config[status] || config.new;
@@ -238,7 +238,7 @@ export default function DoctorDashboard() {
                     <p className="text-slate-500 text-xs md:text-sm mt-0.5">{currentDate}</p>
                 </div>
                 <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-1">
-                    <div className="text-xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-600/70 bg-clip-text text-transparent">
+                    <div className="text-xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-primary-600/70 bg-clip-text text-transparent">
                         {currentTime}
                     </div>
                     <div className="text-[10px] md:text-xs text-slate-500">
@@ -253,8 +253,8 @@ export default function DoctorDashboard() {
                     title="Patients in Queue"
                     value={stats.queueCount}
                     icon={Clock}
-                    gradient="from-blue-500 to-blue-600"
-                    hoverGradient="from-blue-600 to-blue-700"
+                    gradient="from-primary-500 to-primary-600"
+                    hoverGradient="from-primary-600 to-primary-700"
                     onClick={() => navigate('/doctor/queue')}
                     clickable
                 />
@@ -262,8 +262,8 @@ export default function DoctorDashboard() {
                     title="Today's Appointments"
                     value={stats.todayAppointments}
                     icon={Calendar}
-                    gradient="from-purple-500 to-purple-600"
-                    hoverGradient="from-purple-600 to-purple-700"
+                    gradient="from-primary-500 to-primary-600"
+                    hoverGradient="from-primary-600 to-primary-700"
                     onClick={() => navigate('/doctor/appointments')}
                     clickable
                 />
@@ -285,12 +285,12 @@ export default function DoctorDashboard() {
                     <div className="bg-white p-4 rounded-xl shadow border border-slate-100">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                <Bell size={18} className="text-blue-800" />
+                                <Bell size={18} className="text-primary-800" />
                                 Recent Activity
                             </h2>
                             <button
                                 onClick={() => setIsActivityModalOpen(true)}
-                                className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                                className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
                                 View All
                                 <ChevronRight size={12} />
                             </button>
@@ -357,18 +357,18 @@ export default function DoctorDashboard() {
                                 icon={Clock}
                                 title="Manage Queue"
                                 description="Call next patient"
-                                color="text-blue-600"
-                                bg="bg-blue-50"
-                                hoverBg="hover:bg-blue-100"
+                                color="text-primary-600"
+                                bg="bg-primary-50"
+                                hoverBg="hover:bg-primary-100"
                                 onClick={() => navigate('/doctor/queue')}
                             />
                             <QuickActionButton
                                 icon={Calendar}
                                 title="View Schedule"
                                 description="Check appointments"
-                                color="text-purple-600"
-                                bg="bg-purple-50"
-                                hoverBg="hover:bg-purple-100"
+                                color="text-primary-600"
+                                bg="bg-primary-50"
+                                hoverBg="hover:bg-primary-100"
                                 onClick={() => navigate('/doctor/appointments')}
                             />
                             <QuickActionButton

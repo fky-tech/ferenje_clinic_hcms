@@ -5,12 +5,13 @@ import { toEthiopian, toGregorian } from 'ethiopian-calendar-new';
  * @param {Date|string} date 
  * @returns {string}
  */
-export const formatToEthiopian = (date) => {
+export const formatToEthiopian = (date, includeTime = false) => {
     if (!date) return '';
     let d;
-    if (typeof date === 'string' && date.length === 10) {
-        const [y, m, day] = date.split('-').map(Number);
-        d = new Date(y, m - 1, day);
+    if (typeof date === 'string') {
+        // Handle MySQL space instead of T
+        const normalized = date.replace(' ', 'T');
+        d = new Date(normalized);
     } else {
         d = new Date(date);
     }
@@ -18,7 +19,18 @@ export const formatToEthiopian = (date) => {
     if (isNaN(d)) return '';
 
     const eth = toEthiopian(d.getFullYear(), d.getMonth() + 1, d.getDate());
-    return `${eth.day}/${eth.month}/${eth.year}`;
+    const dateStr = `${eth.day}/${eth.month}/${eth.year}`;
+
+    if (includeTime) {
+        const hours = d.getHours();
+        const minutes = d.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        return `${dateStr} ${displayHours}:${displayMinutes} ${ampm}`;
+    }
+
+    return dateStr;
 };
 
 /**

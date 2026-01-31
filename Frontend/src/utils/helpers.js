@@ -7,10 +7,11 @@ import { formatToEthiopian } from './dateUtils';
 export const formatDate = (date, formatStr = DATE_FORMATS.DISPLAY, isUI = true) => {
     if (!date) return '';
     try {
-        const dateObj = typeof date === 'string' ? parseISO(date) : date;
+        const dateObj = typeof date === 'string' ? parseISO(date.replace(' ', 'T')) : date;
         // If it's for UI, default to Ethiopian
         if (isUI) {
-            return formatToEthiopian(dateObj);
+            const includeTime = formatStr.includes('hh:mm') || formatStr.includes('HH:mm');
+            return formatToEthiopian(dateObj, includeTime);
         }
         return format(dateObj, formatStr);
     } catch (error) {
