@@ -113,7 +113,9 @@ export default function RegisterPatient() {
     const fetchDoctors = async () => {
       try {
         const response = await api.get(API_ROUTES.DOCTORS);
-        setDoctors(response.data);
+        // Filter to show only clinical doctors (not lab/ultrasound)
+        const clinicalDoctors = response.data.filter(doc => doc.role === 'doctor');
+        setDoctors(clinicalDoctors);
       } catch (err) {
         toast.error("Failed to load doctors");
       }
@@ -248,12 +250,13 @@ export default function RegisterPatient() {
     } catch (error) {
       console.error("Registration error:", error);
       const backendError = error.response?.data?.error || error.response?.data?.message;
+      const details = error.response?.data?.details;
       const validationDetails = error.response?.data?.errors?.map(e => e.message).join(', ');
 
       toast.error(
         validationDetails
           ? `Validation Failed: ${validationDetails}`
-          : backendError || "Registration failed"
+          : (details ? `${backendError}: ${details}` : (backendError || "Registration failed"))
       );
     } finally {
       setLoading(false);
@@ -484,8 +487,8 @@ export default function RegisterPatient() {
                   >
                     <option value="">Select Doctor</option>
                     {doctors.map(doc => (
-                      <option key={doc.doctor_id} value={doc.doctor_id}>
-                        Dr. {doc.first_name} {doc.last_name} ({doc.specialization})
+                      <option key={doc.person_id} value={doc.person_id}>
+                        Dr. {doc.first_name} {doc.last_name} ({doc.specialization || 'General'})
                       </option>
                     ))}
                   </select>

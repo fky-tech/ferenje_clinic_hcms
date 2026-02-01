@@ -32,7 +32,7 @@ export default function Labs() {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const params = { category: 'other' };
+            const params = { category: 'other', onlyPaid: true };
             if (filterDate) params.date = filterDate;
 
             const response = await api.get('/lab-requests/requests', { params });

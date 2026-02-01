@@ -72,7 +72,9 @@ export default function ManageQueue() {
             const cardsRes = await api.get(API_ROUTES.CARDS);
             setCards(cardsRes.data);
             const doctorsRes = await api.get(API_ROUTES.DOCTORS);
-            setDoctors(doctorsRes.data);
+            // Filter to show only clinical doctors
+            const clinicalDoctors = doctorsRes.data.filter(doc => doc.role === 'doctor');
+            setDoctors(clinicalDoctors);
         } catch (error) {
             console.error('Error fetching dependencies:', error);
         }

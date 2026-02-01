@@ -145,12 +145,30 @@ class LabRequest {
         return result.affectedRows;
     }
 
-    static async getStats() {
+    static async getStats(onlyPaid = false) {
         const today = new Date().toISOString().slice(0, 10);
 
-        // Parallel queries for efficiency
-        const [totalRequests] = await db.execute('SELECT COUNT(*) as count FROM lab_request');
-        const [todayRequests] = await db.execute('SELECT COUNT(*) as count FROM lab_request WHERE DATE(RequestDate) = ?', [today]);
+        let totalQuery = 'SELECT COUNT(*) as count FROM lab_request';
+        let todayQuery = 'SELECT COUNT(*) as count FROM lab_request WHERE DATE(RequestDate) = ?';
+        let todayParams = [today];
+
+        if (onlyPaid) {
+            totalQuery = `
+                SELECT COUNT(DISTINCT lr.request_id) as count 
+                FROM lab_request lr
+                JOIN lab_request_tests lrt ON lr.request_id = lrt.request_id
+                WHERE lrt.payment_status = 'paid'
+            `;
+            todayQuery = `
+                SELECT COUNT(DISTINCT lr.request_id) as count 
+                FROM lab_request lr
+                JOIN lab_request_tests lrt ON lr.request_id = lrt.request_id
+                WHERE DATE(lr.RequestDate) = ? AND lrt.payment_status = 'paid'
+            `;
+        }
+
+        const [totalRequests] = await db.execute(totalQuery);
+        const [todayRequests] = await db.execute(todayQuery, todayParams);
         const [availableTests] = await db.execute('SELECT COUNT(*) as count FROM available_lab_tests');
 
         return {
@@ -179,7 +197,7 @@ class LabRequest {
         return rows.map(row => new LabRequest(row));
     }
 
-    static async findAllRequests(date = null, category = null) {
+    static async findAllRequests(date = null, category = null, onlyPaid = false) {
         let query = `
             SELECT DISTINCT lr.*, p.is_urgent,
                    pvr.UrgentAttention,
@@ -205,7 +223,9 @@ class LabRequest {
             JOIN patient p ON c.patient_id = p.patient_id
             LEFT JOIN doctor d ON pvr.doctor_id = d.doctor_id
             LEFT JOIN person per ON d.doctor_id = per.person_id
+            ${onlyPaid ? 'JOIN lab_request_tests lrt_paid ON lr.request_id = lrt_paid.request_id' : ''}
             WHERE 1=1
+            ${onlyPaid ? "AND lrt_paid.payment_status = 'paid'" : ''}
         `;
 
         const params = [];

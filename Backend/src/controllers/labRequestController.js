@@ -91,7 +91,8 @@ class LabRequestController {
 
     async getDashboardStats(req, res) {
         try {
-            const stats = await LabRequest.getStats();
+            const { onlyPaid } = req.query;
+            const stats = await LabRequest.getStats(onlyPaid === 'true');
             res.status(200).json(stats);
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
@@ -111,8 +112,8 @@ class LabRequestController {
 
     async getRequests(req, res) {
         try {
-            const { date, category } = req.query;
-            const requests = await LabRequest.findAllRequests(date, category);
+            const { date, category, onlyPaid } = req.query;
+            const requests = await LabRequest.findAllRequests(date, category, onlyPaid === 'true');
             res.status(200).json(requests);
         } catch (error) {
             console.error('Error fetching lab requests with filter:', error);

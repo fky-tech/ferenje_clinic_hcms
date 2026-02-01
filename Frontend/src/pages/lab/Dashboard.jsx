@@ -59,8 +59,8 @@ export default function Dashboard() {
         try {
             setLoading(true);
             const [statsRes, recentRes] = await Promise.all([
-                api.get('/lab-requests/dashboard/stats'),
-                api.get('/lab-requests/requests')
+                api.get('/lab-requests/dashboard/stats?onlyPaid=true'),
+                api.get('/lab-requests/requests?onlyPaid=true')
             ]);
             if (statsRes.data) setStats(statsRes.data);
 

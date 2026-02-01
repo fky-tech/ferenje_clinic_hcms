@@ -32,7 +32,14 @@ export default function ManageReceptionists() {
             // Using /persons endpoint filter by role (needs backend support or fetch all and filter)
             // PersonController has getPersonsByRole logic at /persons/role/:role?
             // Let's check api constants or assumption. Controller HAS getPersonsByRole
-            // Route: router.get('/role/:role', (req, res) => personController.getPersonsByRole(req, res));
+            // **Admin Management & Validation**:
+            // - Implemented detailed backend validation in `personController.js` and `doctorController.js` for password length (min 6 chars), email format, and name length (min 2 chars).
+            // - Added frontend validation to `ManageDoctors.jsx` and `ManageReceptionists.jsx` to provide immediate feedback: "name can't be 1 char".
+            // - Refined deletion logic: If a staff member has active records (appointments, etc.), the system now returns a clear explanation: "Cannot delete staff member who has associated records."
+            // - Fixed "Person Not Found" error during doctor edits by adding `person_id` to the `Doctor` model constructor and ensuring it's used consistently in frontend API calls.
+            // - Corrected Receptionist creation to automatically assign the correct department (ID: 3).
+            // - Updated `doctorModel.js` to use an inclusive FETCH (LEFT JOIN starting from `person`) to ensure all lab and clinical doctors are listed.
+            // - Resolved visibility of "other" lab specialists, now displaying as "Lab (Standard)".
             // Let's assume standard REST: /persons?role=receptionist OR /persons/role/receptionist
             // Checking PersonRoutes... Step 2376 showed files. Step 2410 server.js showed routes mount at /api/persons
             // I'll try /persons/role/receptionist first. If fails, I'll update.
@@ -90,11 +97,16 @@ export default function ManageReceptionists() {
                 toast.error('Please fill in all basic fields');
                 return;
             }
+            if (formData.first_name.length < 2 || formData.last_name.length < 2) {
+                toast.error("name can't be 1 char");
+                return;
+            }
 
             const personData = {
                 ...formData,
-                department_id: null,
-                role: 'receptionist'
+                department_id: 3, // Receptionist department
+                role: 'receptionist',
+                lab_specialty: null
             };
 
             if (selectedUser) {
@@ -108,6 +120,15 @@ export default function ManageReceptionists() {
                     toast.error('Password is required');
                     return;
                 }
+                if (formData.password.length < 6) {
+                    toast.error('Password must be at least 6 characters long');
+                    return;
+                }
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(formData.email)) {
+                    toast.error('Invalid email format');
+                    return;
+                }
                 await api.post('/persons', personData);
                 toast.success('Receptionist added successfully');
             }
@@ -116,7 +137,14 @@ export default function ManageReceptionists() {
             fetchData();
         } catch (error) {
             console.error('Error saving receptionist:', error);
-            toast.error(error.response?.data?.error || 'Failed to save receptionist');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to save receptionist';
+            const details = error.response?.data?.details;
+
+            if (details) {
+                toast.error(`${errorMessage}: ${details}`);
+            } else {
+                toast.error(errorMessage);
+            }
         }
     };
 
@@ -128,7 +156,14 @@ export default function ManageReceptionists() {
             fetchData();
         } catch (error) {
             console.error('Error deleting receptionist:', error);
-            toast.error('Failed to delete receptionist');
+            const errorMessage = error.response?.data?.error || 'Failed to delete receptionist';
+            const details = error.response?.data?.details;
+
+            if (details) {
+                toast.error(`${errorMessage}: ${details}`);
+            } else {
+                toast.error(errorMessage);
+            }
         }
     };
 

@@ -23,7 +23,7 @@ export default function Ultrasounds() {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const params = { category: 'Ultrasound' };
+            const params = { category: 'Ultrasound', onlyPaid: true };
             if (filterDate) params.date = filterDate;
 
             const response = await api.get('/lab-requests/requests', { params });

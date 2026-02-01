@@ -63,7 +63,7 @@ export default function ManageDoctors() {
                 department_id: doctor.department_id || '',
                 office_no: doctor.office_no,
                 specialization: doctor.specialization,
-                lab_specialty: doctor.lab_specialty || ''
+                lab_specialty: doctor.lab_specialty || null
             });
         } else {
             setSelectedDoctor(null);
@@ -77,7 +77,7 @@ export default function ManageDoctors() {
                 department_id: '',
                 office_no: '',
                 specialization: '',
-                lab_specialty: ''
+                lab_specialty: null
             });
         }
         setIsModalOpen(true);
@@ -96,8 +96,21 @@ export default function ManageDoctors() {
                 toast.error('Please fill in all basic fields');
                 return;
             }
+            if (formData.first_name.length < 2 || formData.last_name.length < 2) {
+                toast.error("name can't be 1 char");
+                return;
+            }
             if (!selectedDoctor && !formData.password) {
                 toast.error('Password is required for new doctors');
+                return;
+            }
+            if (formData.password && formData.password.length < 6) {
+                toast.error('Password must be at least 6 characters long');
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                toast.error('Invalid email format');
                 return;
             }
 
@@ -123,10 +136,10 @@ export default function ManageDoctors() {
 
             if (selectedDoctor) {
                 // UPDATE
-                // 1. Update Person
-                await api.put(`/persons/${selectedDoctor.doctor_id}`, personData);
+                // 1. Update Person (Uses person_id from doctor object)
+                await api.put(`/persons/${selectedDoctor.person_id}`, personData);
                 // 2. Update Doctor Details
-                await api.put(`/doctors/${selectedDoctor.doctor_id}`, {
+                await api.put(`/doctors/${selectedDoctor.person_id}`, {
                     office_no: formData.office_no,
                     specialization: formData.specialization
                 });
@@ -150,20 +163,34 @@ export default function ManageDoctors() {
             fetchData();
         } catch (error) {
             console.error('Error saving doctor:', error);
-            toast.error(error.response?.data?.error || 'Failed to save doctor');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to save doctor';
+            const details = error.response?.data?.details;
+
+            if (details) {
+                toast.error(`${errorMessage}: ${details}`);
+            } else {
+                toast.error(errorMessage);
+            }
         }
     };
 
     const handleDelete = async () => {
         try {
-            // Delete Person (Assuming CASCADE deletes Doctor)
-            await api.delete(`/persons/${selectedDoctor.doctor_id}`);
+            // Delete Person (CASCADE should delete Doctor, but we use Person ID)
+            await api.delete(`/persons/${selectedDoctor.person_id}`);
             toast.success('Doctor deleted successfully');
             setIsDeleteModalOpen(false);
             fetchData();
         } catch (error) {
             console.error('Error deleting doctor:', error);
-            toast.error('Failed to delete doctor');
+            const errorMessage = error.response?.data?.error || 'Failed to delete doctor';
+            const details = error.response?.data?.details;
+
+            if (details) {
+                toast.error(`${errorMessage}: ${details}`);
+            } else {
+                toast.error(errorMessage);
+            }
         }
     };
 
@@ -176,7 +203,14 @@ export default function ManageDoctors() {
         { header: 'Name', render: (row) => `${row.first_name} ${row.last_name}` },
         {
             header: 'Specialization/Specialty',
-            render: (row) => row.lab_specialty ? `Lab (${row.lab_specialty})` : row.specialization || 'N/A'
+            render: (row) => {
+                if (row.lab_specialty) {
+                    const specialtyLabel = row.lab_specialty === 'other' ? 'Standard' :
+                        row.lab_specialty.charAt(0).toUpperCase() + row.lab_specialty.slice(1);
+                    return `Lab (${specialtyLabel})`;
+                }
+                return row.specialization || 'Clinical';
+            }
         },
         { header: 'Department', render: (row) => row.department_name || 'N/A' },
         { header: 'Office', accessor: 'office_no' },

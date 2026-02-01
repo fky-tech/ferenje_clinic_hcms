@@ -3,15 +3,28 @@ import Patient from '../models/patientModel.js';
 class PatientController {
     async createPatient(req, res) {
         try {
-            const { FirstName, DateOfBirth, Sex, is_urgent } = req.body;
-            if (!FirstName || !DateOfBirth || !Sex) {
-                return res.status(400).json({ error: 'Missing required fields' });
+            const { FirstName } = req.body;
+            if (!FirstName) {
+                return res.status(400).json({ error: 'Missing required fields', details: 'First Name is required' });
             }
-            const result = await Patient.create(req.body);
+
+            // Ensure doctor_id is handled as number or null
+            const patientData = {
+                ...req.body,
+                doctor_id: req.body.doctor_id ? parseInt(req.body.doctor_id) : null,
+                Age: req.body.Age ? parseInt(req.body.Age) : null
+            };
+
+            const result = await Patient.create(patientData);
             res.status(201).json({ message: 'Patient created successfully', patient_id: result });
         } catch (error) {
-            console.error('Error creating patient:', error);
-            res.status(500).json({ error: 'Failed to create patient', details: error.message });
+            console.error('SERVER ERROR - createPatient:', error);
+            res.status(500).json({
+                error: 'Failed to create patient',
+                details: error.message,
+                sqlState: error.sqlState,
+                code: error.code
+            });
         }
     }
 

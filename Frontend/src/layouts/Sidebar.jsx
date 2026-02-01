@@ -26,7 +26,7 @@ const receptionistMenuItems = [
     { path: '/receptionist/view-cards', icon: CreditCard, label: 'View Cards' },
     { path: '/receptionist/lab-requests', icon: FlaskConical, label: 'Lab Requests' },
     { path: '/receptionist/appointments', icon: Calendar, label: 'Appointments' },
-    { path: '/receptionist/manage-queue', icon: Users, label: 'Manage Queue' },
+    { path: '/receptionist/manage-queue', icon: Users, label: 'Queues' },
 ];
 
 const doctorMenuItems = [

@@ -13,6 +13,9 @@ class Doctor {
         this.department_name = data.department_name || null;
         this.lab_specialty = data.lab_specialty || null;
         this.department_id = data.department_id || null;
+        this.role = data.role || null;
+        this.person_id = data.person_id || null;
+        this.address = data.address || null;
     }
 
     async save() {
@@ -34,21 +37,22 @@ class Doctor {
 
     static async findAll() {
         const [rows] = await db.execute(`
-      SELECT d.*, p.first_name, p.last_name, p.email, p.phone_number, p.lab_specialty, p.department_id, dep.department_name
-      FROM doctor d
-      JOIN person p ON d.doctor_id = p.person_id
+      SELECT p.*, d.doctor_id, d.office_no, d.specialization, dep.department_name
+      FROM person p
+      LEFT JOIN doctor d ON p.person_id = d.doctor_id
       LEFT JOIN department dep ON p.department_id = dep.department_id
+      WHERE p.role IN ('doctor', 'lab_doctor')
     `);
         return rows.map(row => new Doctor(row));
     }
 
     static async findById(id) {
         const [rows] = await db.execute(`
-      SELECT d.*, p.first_name, p.last_name, p.email, p.phone_number, p.lab_specialty, p.department_id, dep.department_name
-      FROM doctor d
-      JOIN person p ON d.doctor_id = p.person_id
+      SELECT p.*, d.doctor_id, d.office_no, d.specialization, dep.department_name
+      FROM person p
+      LEFT JOIN doctor d ON p.person_id = d.doctor_id
       LEFT JOIN department dep ON p.department_id = dep.department_id
-      WHERE d.doctor_id = ?
+      WHERE p.person_id = ?
     `, [id]);
         return rows[0] ? new Doctor(rows[0]) : null;
     }
@@ -56,8 +60,8 @@ class Doctor {
     static async update(id, doctorData) {
         const { office_no, specialization } = doctorData;
         const [result] = await db.execute(
-            'UPDATE doctor SET office_no = ?, specialization = ? WHERE doctor_id = ?',
-            [office_no, specialization, id]
+            'INSERT INTO doctor (doctor_id, office_no, specialization) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE office_no = VALUES(office_no), specialization = VALUES(specialization)',
+            [id, office_no, specialization]
         );
         return result.affectedRows;
     }
