@@ -29,7 +29,7 @@ class Doctor {
     static async create(doctorData) {
         const { doctor_id, office_no, specialization } = doctorData;
         const [result] = await db.execute(
-            'INSERT INTO doctor (doctor_id, office_no, specialization) VALUES (?, ?, ?)',
+            'INSERT INTO doctor (doctor_id, office_no, specialization) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE office_no = VALUES(office_no), specialization = VALUES(specialization)',
             [doctor_id, office_no, specialization]
         );
         return doctor_id;

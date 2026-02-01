@@ -44,12 +44,10 @@ export default function ManageQueue() {
         try {
             const response = await api.get(API_ROUTES.QUEUES);
             // Filter only today's queue
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
             const todayQueue = response.data.filter(q => {
-                const qDate = new Date(q.date?.replace(' ', 'T') || new Date());
-                const today = new Date();
-                return qDate.getDate() === today.getDate() &&
-                    qDate.getMonth() === today.getMonth() &&
-                    qDate.getFullYear() === today.getFullYear();
+                const qDateStr = q.date ? q.date.slice(0, 10) : '';
+                return qDateStr === today;
             }).sort((a, b) => {
                 // Priority Sort: Urgent (1) > Normal (0) or check is_urgent field
                 // Note: Check what field is returned. Model returns 'is_urgent' from patient table.
@@ -122,7 +120,7 @@ export default function ManageQueue() {
     };
 
     const columns = [
-        { header: 'Position', accessor: 'queue_position' },
+        // { header: 'Position', accessor: 'queue_position' },
         { header: 'Patient', render: (row) => `${row.FirstName || ''} ${row.Father_Name || ''}` },
         { header: 'Card Number', accessor: 'CardNumber' },
         {

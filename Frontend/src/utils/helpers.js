@@ -35,25 +35,9 @@ export const formatDateTimeForAPI = (date) => {
 export const isDateToday = (date) => {
     if (!date) return false;
     try {
-        let dateObj;
-        if (typeof date === 'string') {
-            // If it's just a date "YYYY-MM-DD", parse manually to avoid UTC shift
-            if (date.length === 10) {
-                const [y, m, d] = date.split('-').map(Number);
-                dateObj = new Date(y, m - 1, d);
-            } else {
-                // Handle SQL format "YYYY-MM-DD HH:mm:ss" - replace space with T to make it ISO-like
-                const normalized = date.replace(' ', 'T');
-                dateObj = new Date(normalized);
-
-                // If it was "2026-01-04T21:00:00" and treated as UTC, it might be the next day in Local.
-                // But normally MySQL DATETIME is local time unless configured otherwise.
-                // If isToday(dateObj) fails, it's often because it was parsed as UTC.
-            }
-        } else {
-            dateObj = date;
-        }
-        return isToday(dateObj);
+        const today = new Date().toISOString().slice(0, 10);
+        const dateStr = typeof date === 'string' ? date.slice(0, 10) : new Date(date).toISOString().slice(0, 10);
+        return dateStr === today;
     } catch (error) {
         return false;
     }

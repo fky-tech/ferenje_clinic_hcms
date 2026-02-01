@@ -215,10 +215,12 @@ export default function RegisterPatient() {
 
       // 4. Auto-add to Queue
       try {
+        const now = new Date();
+        const mysqlDate = now.toISOString().slice(0, 19).replace('T', ' ');
         await api.post(API_ROUTES.QUEUES, {
           card_id: newCardId,
           doctor_id: cleanData.doctor_id,
-          date: new Date().toISOString(), // Optional, backend defaults to now
+          date: mysqlDate,
         });
         toast.success("Patient added to queue automatically");
       } catch (queueError) {
